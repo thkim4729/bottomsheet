@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <script src="/script.js" defer></script>
+    <link rel="stylesheet" href="/style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <button
+      type="button"
+      onclick="document.getElementById('testBottomSheet').openSheet()"
+    >
+      openSheet
+    </button>
+
+    <bottom-sheet id="testBottomSheet" title="Title is Lorem ipsum" vh="50">
+      <main class="_example">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <div>
+          <button
+            type="button"
+            onclick="document.getElementById('testBottomSheet').closeSheet()"
+          >
+            closeSheet
+          </button>
+          <button
+            type="button"
+            onclick="document.getElementById('testBottomSheet').fullSheet()"
+          >
+            fullSheet
+          </button>
+        </div>
+      </main>
+      <div class="bottom-actions">
+        <button
+          type="button"
+          onclick="document.getElementById('testBottomSheet').closeSheet()"
+        >
+          닫기
+        </button>
+        <button
+          type="button"
+          onclick="document.getElementById('testBottomSheet').fullSheet()"
+        >
+          풀사이즈
+        </button>
+      </div>
+    </bottom-sheet>
+  </body>
+</html>
