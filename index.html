@@ -1,285 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bottom Sheet</title>
-    <style>
-      .bottomSheet {
-        position: fixed;
-        top: calc(100% - 125px);
-        left: 0;
-        z-index: 1;
-        width: 100%;
-        height: auto;
-        min-height: 30rem;
-        background: #fff;
-        border-radius: 2rem 2rem 0 0;
-        box-shadow: 0 -0.4rem 1rem 0 rgba(0, 0, 0, 0.2);
-        padding: var(--layout-padding);
-        padding-top: 0;
-        padding-bottom: calc(var(--layout-padding) + 2rem);
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-        transition: all 0.5s;
-      }
-
-      .bottomSheet .handlebar {
-        height: 50px;
-        position: relative;
-        display: flex;
-        background: linear-gradient(to bottom, #fff 50%, transparent);
-        position: sticky;
-        inset: var(--layout-padding);
-        top: 0;
-        flex-shrink: 0;
-        cursor: pointer;
-      }
-
-      .bottomSheet .handlebar::after {
-        content: "";
-        width: 16rem;
-        height: 0.4rem;
-        background: var(--color-gray-30);
-        border-radius: 1rem;
-        margin: var(--layout-padding) auto 0;
-      }
-
-      @media (min-width: 1024px) {
-        .bottomSheet {
-          inset: unset;
-          top: 6rem;
-          right: 0;
-          width: 50%;
-          max-width: 50rem;
-          max-height: none;
-          overflow-y: auto;
-          height: calc(100% - 6rem) !important;
-          border-radius: 0;
-          box-shadow: none;
-          background: none;
-          padding: 0;
-          flex-direction: row;
-          align-items: center;
-          transform: translateX(calc(100% - 2.8rem)) !important;
-        }
-
-        .bottomSheet .contents {
-          height: 100%;
-          padding: var(--layout-padding);
-          border-radius: 2rem 0 0 2rem;
-          background: #fff;
-          box-shadow: 0 -0.4rem 1rem 0 rgba(0, 0, 0, 0.2);
-          flex-grow: 1;
-          overflow-y: auto;
-        }
-
-        .bottomSheet .handlebar {
-          inset: unset;
-          flex-shrink: 0;
-          width: 2.8rem;
-          height: 6rem;
-          background: #fff;
-          z-index: 1;
-          box-shadow: -0.2rem 0 0.3rem 0 rgba(0, 0, 0, 0.1);
-          border-radius: 1rem 0 0 1rem;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 0;
-        }
-
-        .bottomSheet .handlebar::after {
-          /* background: url(/icon-arrow.svg) no-repeat; */ /* 이미지 경로는 실제 경로로 변경해야 합니다. */
-          content: ""; /* ::after에 content 속성이 없으면 나타나지 않습니다. */
-          width: 1.1rem;
-          height: 2rem;
-          margin: 0;
-          transform: rotate(0);
-          margin-right: 0;
-          transition: all 0.5s;
-          background-color: #ccc; /* 임시 스타일 */
-        }
-
-        .bottomSheet.is-act {
-          transform: translateX(0) !important;
-        }
-
-        .bottomSheet.is-act .handlebar::after {
-          margin-right: -0.5rem;
-          transform: rotate(180deg);
-        }
-      }
-    </style>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <script src="/script.js" defer></script>
+    <link rel="stylesheet" href="/style.css" />
+    <title>Document</title>
   </head>
   <body>
-    <div id="root">
-      <div
-        class="bottomSheet"
-        style="height: auto; min-height: 30rem; top: calc(100% - 125px)"
-      >
-        <div class="handlebar"></div>
-        <div
-          class="contents"
-          ref="content"
-          style="
-            overflow-y: auto;
-            padding: var(--layout-padding);
-            padding-top: 0;
-            padding-bottom: calc(var(--layout-padding) + 2rem);
-          "
-        >
-          <p>여기에 BottomSheet 내용이 들어갑니다.</p>
-          <p>스크롤 가능한 내용...</p>
-          <p>더 많은 내용...</p>
-          <p>계속되는 내용...</p>
-          <p>마지막 내용</p>
+    <button
+      type="button"
+      onclick="document.getElementById('testBottomSheet').openSheet()"
+    >
+      openSheet
+    </button>
+
+    <bottom-sheet id="testBottomSheet" title="Title is Lorem ipsum" vh="50">
+      <main class="_example">
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <div>
+          <button
+            type="button"
+            onclick="document.getElementById('testBottomSheet').closeSheet()"
+          >
+            closeSheet
+          </button>
+          <button
+            type="button"
+            onclick="document.getElementById('testBottomSheet').fullSheet()"
+          >
+            fullSheet
+          </button>
         </div>
+      </main>
+      <div class="bottom-actions">
+        <button
+          type="button"
+          onclick="document.getElementById('testBottomSheet').closeSheet()"
+        >
+          닫기
+        </button>
+        <button
+          type="button"
+          onclick="document.getElementById('testBottomSheet').fullSheet()"
+        >
+          풀사이즈
+        </button>
       </div>
-    </div>
-
-    <script>
-      // Recoil 상태 관리는 JavaScript 환경에서 직접적으로 구현하기 어렵습니다.
-      // 여기서는 간단한 상태 변수로 대체하여 BottomSheet의 활성화 및 스타일을 관리합니다.
-      let isAct = false;
-      const rootElement = document.getElementById("root");
-      const bottomSheetElement = rootElement.querySelector(".bottomSheet");
-      const handlebarElement = bottomSheetElement.querySelector(".handlebar");
-      const contentsElement = bottomSheetElement.querySelector(".contents");
-
-      const MIN_Y_BASE = 125;
-      let MIN_Y = window.innerHeight - MIN_Y_BASE;
-      let MAX_Y = window.innerHeight;
-      const docHeight = 60;
-
-      const metrics = {
-        touchStart: {
-          sheetY: 0,
-          touchY: 0,
-        },
-        touchMove: {
-          prevTouchY: 0,
-          movingDirection: "none",
-        },
-        isContentAreaTouched: false,
-      };
-
-      function canUserMoveBottomSheet() {
-        if (!metrics.isContentAreaTouched) return true;
-        if (bottomSheetElement.getBoundingClientRect().y !== MIN_Y) return true;
-        if (
-          metrics.touchMove.movingDirection === "down" &&
-          contentsElement.scrollTop <= 0
-        )
-          return true;
-        if (
-          metrics.touchMove.movingDirection === "up" &&
-          contentsElement.scrollTop + contentsElement.clientHeight >=
-            contentsElement.scrollHeight
-        )
-          return true;
-        return false;
-      }
-
-      function handleTouchStart(e) {
-        metrics.touchStart.sheetY =
-          bottomSheetElement.getBoundingClientRect().y;
-        metrics.touchStart.touchY = e.touches[0].clientY;
-      }
-
-      function handleTouchMove(e) {
-        const currentTouch = e.touches[0];
-
-        if (metrics.touchMove.prevTouchY === 0)
-          metrics.touchMove.prevTouchY = metrics.touchStart.touchY;
-        if (metrics.touchMove.prevTouchY < currentTouch.clientY)
-          metrics.touchMove.movingDirection = "down";
-        if (metrics.touchMove.prevTouchY > currentTouch.clientY)
-          metrics.touchMove.movingDirection = "up";
-
-        if (canUserMoveBottomSheet()) {
-          e.preventDefault();
-          const touchOffset = currentTouch.clientY - metrics.touchStart.touchY;
-          let nextSheetY = metrics.touchStart.sheetY + touchOffset;
-
-          nextSheetY = Math.max(0, Math.min(MAX_Y, nextSheetY));
-          bottomSheetElement.style.top = `${nextSheetY}px`;
-        }
-        metrics.touchMove.prevTouchY = currentTouch.clientY;
-      }
-
-      function handleTouchEnd(e) {
-        const currentSheetY = bottomSheetElement.getBoundingClientRect().y;
-        const snapThreshold = (MAX_Y - MIN_Y) * 0.3; // 임계값 설정
-
-        if (metrics.touchMove.movingDirection === "down") {
-          if (currentSheetY > MIN_Y + snapThreshold) {
-            bottomSheetElement.style.top = `${MAX_Y - MIN_Y_BASE}px`; // 닫힘
-          } else {
-            bottomSheetElement.style.top = `${MIN_Y}px`; // 열림
-          }
-        } else if (metrics.touchMove.movingDirection === "up") {
-          if (currentSheetY < MIN_Y + snapThreshold) {
-            bottomSheetElement.style.top = `${MIN_Y}px`; // 열림
-          } else {
-            bottomSheetElement.style.top = `${MAX_Y - MIN_Y_BASE}px`; // 닫힘
-          }
-        }
-
-        // metrics 초기화
-        metrics.touchStart.sheetY = 0;
-        metrics.touchStart.touchY = 0;
-        metrics.touchMove.prevTouchY = 0;
-        metrics.touchMove.movingDirection = "none";
-        metrics.isContentAreaTouched = false;
-      }
-
-      function handleContentTouchStart() {
-        metrics.isContentAreaTouched = true;
-      }
-
-      function handleClick() {
-        isAct = !isAct;
-        if (window.innerWidth >= 1024) {
-          if (isAct) {
-            bottomSheetElement.classList.add("is-act");
-          } else {
-            bottomSheetElement.classList.remove("is-act");
-          }
-        } else {
-          bottomSheetElement.style.top = isAct
-            ? `${MIN_Y}px`
-            : `${MAX_Y - MIN_Y_BASE}px`;
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", () => {
-        MIN_Y = window.innerHeight - MIN_Y_BASE;
-        MAX_Y = window.innerHeight;
-        bottomSheetElement.style.top = `${MAX_Y - MIN_Y_BASE}px`; // 초기 닫힌 상태
-
-        handlebarElement.addEventListener("click", handleClick);
-        bottomSheetElement.addEventListener("touchstart", handleTouchStart);
-        bottomSheetElement.addEventListener("touchmove", handleTouchMove);
-        bottomSheetElement.addEventListener("touchend", handleTouchEnd);
-        contentsElement.addEventListener("touchstart", handleContentTouchStart);
-      });
-
-      window.addEventListener("resize", () => {
-        MIN_Y = window.innerHeight - MIN_Y_BASE;
-        MAX_Y = window.innerHeight;
-        if (window.innerWidth < 1024 && !isAct) {
-          bottomSheetElement.style.top = `${MAX_Y - MIN_Y_BASE}px`;
-        } else if (window.innerWidth >= 1024) {
-          // 데스크탑 모드에서는 top 스타일 대신 translateX 사용
-          bottomSheetElement.style.top = "6rem";
-          bottomSheetElement.style.height = "calc(100% - 6rem)";
-          bottomSheetElement.style.transform = isAct
-            ? "translateX(0)"
-            : "translateX(calc(100% - 2.8rem))";
-        }
-      });
-    </script>
+    </bottom-sheet>
   </body>
 </html>
