@@ -2,62 +2,209 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
-    <script src="script.js" defer></script>
-    <link rel="stylesheet" href="style.css" />
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bottom Sheet with Internal Scroll</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        min-height: 100vh;
+        background-color: #f0f0f0;
+      }
+
+      /* 바텀 시트 스타일 */
+      .bottom-sheet {
+        width: 100%;
+        max-width: 500px;
+        height: 50vh; /* 예시로 뷰포트 높이의 절반 */
+        background-color: white;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* 바텀 시트 자체 스크롤 방지 및 내부 콘텐츠 클리핑 */
+
+        /* 바텀 시트 드래그(예시) - 실제 구현은 더 복잡할 수 있습니다. */
+        position: fixed;
+        bottom: 0;
+        transform: translateY(0);
+        transition: transform 0.3s ease-out;
+      }
+
+      .bottom-sheet.closed {
+        transform: translateY(
+          calc(100% - 50px)
+        ); /* 닫혔을 때 약간만 보이도록 */
+      }
+
+      .handle {
+        height: 30px; /* 핸들 높이 증가 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: grab;
+        user-select: none;
+      }
+
+      .handle::before {
+        content: "";
+        width: 40px;
+        height: 5px; /* 핸들 바 두께 증가 */
+        background-color: #ccc;
+        border-radius: 2px;
+      }
+
+      /* 내부 스크롤 가능한 박스 스타일 */
+      .scrollable-box {
+        flex-grow: 1; /* 남은 공간을 모두 차지 */
+        overflow-y: auto; /* 세로 스크롤 가능 */
+        padding: 20px;
+        -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
+        /* overscroll-behavior: contain; */ /* 이 속성도 고려할 수 있습니다. 아래 설명 참조 */
+        overscroll-behavior: contain; /* 이중 스크롤 방지 (스크롤 체이닝 방지) */
+      }
+
+      .content-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .content-item:last-child {
+        border-bottom: none;
+      }
+    </style>
   </head>
   <body>
-    <button
-      type="button"
-      onclick="document.getElementById('testBottomSheet').openSheet()"
+    <div
+      class="bottom-sheet"
+      id="bottomSheet"
+      style="transform: translateY(calc(50vh - 50px))"
     >
-      openSheet
-    </button>
-
-    <bottom-sheet id="testBottomSheet" title="Title is Lorem ipsum" vh="50">
-      <main class="_example">
+      <div class="handle" id="handle"></div>
+      <div class="scrollable-box" id="scrollableBox">
+        ♾️
+        <h3>스크롤 가능한 내용</h3>
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
+          이곳은 스크롤 가능한 영역입니다. 내용을 추가하여 스크롤을
+          확인해보세요.
         </p>
-        <div>
-          <button
-            type="button"
-            onclick="document.getElementById('testBottomSheet').closeSheet()"
-          >
-            closeSheet
-          </button>
-          <button
-            type="button"
-            onclick="document.getElementById('testBottomSheet').fullSheet()"
-          >
-            fullSheet
-          </button>
-        </div>
-      </main>
-      <div class="bottom-actions">
-        <button
-          type="button"
-          onclick="document.getElementById('testBottomSheet').closeSheet()"
-        >
-          닫기
-        </button>
-        <button
-          type="button"
-          onclick="document.getElementById('testBottomSheet').fullSheet()"
-        >
-          풀사이즈
-        </button>
+        <div class="content-item">아이템 1&#x267E;&#xFE0F;</div>
+        <div class="content-item">아이템 2</div>
+        <div class="content-item">아이템 3</div>
+        <div class="content-item">아이템 4</div>
+        <div class="content-item">아이템 5</div>
+        <div class="content-item">아이템 6</div>
+        <div class="content-item">아이템 7</div>
+        <div class="content-item">아이템 8</div>
+        <div class="content-item">아이템 9</div>
+        <div class="content-item">아이템 10</div>
+        <div class="content-item">아이템 11</div>
+        <div class="content-item">아이템 12</div>
+        <div class="content-item">아이템 13</div>
+        <div class="content-item">아이템 14</div>
+        <div class="content-item">아이템 15</div>
+        <div class="content-item">아이템 16</div>
+        <div class="content-item">아이템 17</div>
+        <div class="content-item">아이템 18</div>
+        <div class="content-item">아이템 19</div>
+        <div class="content-item">아이템 20</div>
+        <p>스크롤 가능한 영역 끝.</p>
       </div>
-    </bottom-sheet>
+    </div>
+
+    <script>
+      const bottomSheet = document.getElementById("bottomSheet");
+      const handle = document.getElementById("handle");
+      const scrollableBox = document.getElementById("scrollableBox");
+
+      let isDragging = false;
+      let startY = 0;
+      let startTransformY = 0;
+
+      const openPosition = 0;
+      const closedPosition = bottomSheet.offsetHeight - 50; // 50px만 보이도록
+
+      // --- 드래그 시작 (마우스 & 터치) ---
+      const onDragStart = (event) => {
+        // event.target이 스크롤 가능한 영역 내부이고, 핸들이 아닐 때
+        const isContentScroll =
+          scrollableBox.contains(event.target) &&
+          !handle.contains(event.target);
+
+        // 콘텐츠 영역을 아래로 스와이프해서 닫는 경우: 스크롤이 맨 위일 때만 드래그 시작
+        if (isContentScroll && scrollableBox.scrollTop > 0) {
+          return; // 드래그 시작하지 않음
+        }
+
+        isDragging = true;
+        bottomSheet.style.transition = "none";
+        document.body.style.userSelect = "none";
+
+        startY = "touches" in event ? event.touches[0].clientY : event.clientY;
+
+        const currentTransform = new DOMMatrix(
+          getComputedStyle(bottomSheet).transform
+        );
+        startTransformY = currentTransform.m42;
+      };
+
+      // --- 드래그 중 (마우스 & 터치) ---
+      const onDragMove = (event) => {
+        if (!isDragging) return;
+
+        // 터치 스크롤 중 페이지 새로고침 등 기본 동작 방지
+        if ("touches" in event) {
+          event.preventDefault();
+        }
+
+        const currentY =
+          "touches" in event ? event.touches[0].clientY : event.clientY;
+        const deltaY = currentY - startY;
+        let newTransformY = startTransformY + deltaY;
+
+        // 위아래 경계를 넘지 않도록 제한
+        newTransformY = Math.max(openPosition, newTransformY);
+        newTransformY = Math.min(closedPosition, newTransformY);
+
+        bottomSheet.style.transform = `translateY(${newTransformY}px)`;
+      };
+
+      // --- 드래그 종료 (마우스 & 터치) ---
+      const onDragEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        bottomSheet.style.transition = "transform 0.3s ease-out";
+        document.body.style.userSelect = "";
+
+        const currentTransform = new DOMMatrix(
+          getComputedStyle(bottomSheet).transform
+        ).m42;
+
+        // 중간 지점보다 더 많이 내렸으면 닫고, 아니면 연다.
+        const midpoint = (openPosition + closedPosition) / 2;
+        if (currentTransform > midpoint) {
+          bottomSheet.style.transform = `translateY(${closedPosition}px)`; // 닫기
+        } else {
+          bottomSheet.style.transform = `translateY(${openPosition}px)`; // 열기
+        }
+      };
+
+      // 이벤트 리스너 등록
+      bottomSheet.addEventListener("mousedown", onDragStart);
+      bottomSheet.addEventListener("touchstart", onDragStart, {
+        passive: true,
+      });
+
+      document.addEventListener("mousemove", onDragMove);
+      document.addEventListener("touchmove", onDragMove, { passive: false });
+
+      document.addEventListener("mouseup", onDragEnd);
+      document.addEventListener("touchend", onDragEnd);
+    </script>
   </body>
 </html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>5x4 세로 순서 그리드</title>
+    <style>
+      /* ul과 li의 기본 스타일 초기화 */
+      ul,
+      li {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      body {
+        padding: 20px;
+        font-family: sans-serif;
+      }
+
+      h3 {
+        margin-bottom: 10px;
+      }
+
+      ul {
+        display: grid;
+        grid-template-rows: repeat(5, auto);
+        grid-auto-flow: column;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+
+        padding: 10px;
+        border: 2px solid #ddd;
+        width: 500px;
+        height: 250px;
+      }
+
+      li {
+        background-color: #f0f8ff;
+        border: 1px solid #b0c4de;
+        padding: 10px;
+        text-align: center;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>5행 4열, 세로 순서로 채우기</h3>
+    <ul>
+      <li>1</li>
+      <li>2</li>
+      <li>3</li>
+      <li>4</li>
+      <li>5</li>
+      <li>6</li>
+      <li>7</li>
+      <li>8</li>
+      <li>9</li>
+      <li>10</li>
+      <li>11</li>
+      <li>12</li>
+      <li>13</li>
+      <li>14</li>
+      <li>15</li>
+      <li>16</li>
+      <li>17</li>
+      <li>18</li>
+      <li>19</li>
+      <li>20</li>
+    </ul>
+  </body>
+</html>

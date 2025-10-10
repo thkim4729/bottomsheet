@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="/reset.css" />
+    <link rel="stylesheet" href="/test1.css" />
+    <script src="/scroll.js"></script>
+  </head>
+  <style>
+    .section_nav {
+      height: 100vh;
+    }
+    .section_nav.one {
+      background: palegoldenrod;
+    }
+    .section_nav.two {
+      background: palegreen;
+    }
+    .section_nav.three {
+      background: peachpuff;
+    }
+    .section_nav.four {
+      background: powderblue;
+    }
+    .section_nav.five {
+      background: pink;
+    }
+    .section_nav.six {
+      background: skyblue;
+    }
+    .section_nav__list {
+      position: fixed;
+      left: 100px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .section_nav__button {
+      display: block;
+      border: 1px solid #ddd;
+      background: #fff;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .section_nav__button.active {
+      background: #999 !important;
+    }
+    .section_nav__button:hover {
+      background: #eee;
+    }
+
+    .navigator {
+      position: fixed;
+      right: 40px;
+      top: 200px;
+    }
+    .navigator .depth1 > li ~ li {
+      margin-top: 12px;
+    }
+    .navigator .depth1 > li > button {
+      font-size: 16px;
+    }
+    .navigator .depth2 {
+      margin-top: 12px;
+      text-indent: 24px;
+    }
+    .navigator .depth2 > li ~ li {
+      margin-top: 8px;
+    }
+    .navigator .active-nav-item {
+      color: #0046ff;
+      font-weight: bold;
+    }
+    .navigator .depth1--item:not(.active-nav-item):hover,
+    .navigator .depth2--item:not(.active-nav-item):hover {
+      color: dodgerblue; /* 마우스오버 시 옅은 파란색으로 변경 */
+    }
+  </style>
+  <body>
+    <div id="app" class="wrap">
+      <div>
+        <div id="headerDev" class="header_dev">
+          <div class="inner">
+            <div class="h_wrap">
+              <div class="h_top">
+                <h1 class="logo">
+                  <button>
+                    <i class="ico"
+                      ><span class="sr_only">신한은행PG Developers</span></i
+                    >
+                  </button>
+                </h1>
+                <a href="#" class="btn_dropdown">전체메뉴</a>
+              </div>
+              <div id="navDev" class="nav_dev">
+                <ul class="navbar_dev">
+                  <li class="menu_item has_sub">
+                    <a><span>API 소개</span></a>
+                    <ul class="sub_menu">
+                      <li value="72" class="menu_item">
+                        <a>신용카드</a>
+                      </li>
+                      <li value="79" class="menu_item">
+                        <a>계좌이체</a>
+                      </li>
+                      <li value="73" class="menu_item">
+                        <a>가상계좌</a>
+                      </li>
+                      <li value="74" class="menu_item">
+                        <a>정기결제</a>
+                      </li>
+                      <li value="75" class="menu_item">
+                        <a>브랜드페이</a>
+                      </li>
+                      <li value="76" class="menu_item">
+                        <a>에스크로</a>
+                      </li>
+                      <li value="77" class="menu_item">
+                        <a>지급대행</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="menu_item has_sub">
+                    <a class="active"><span>개발 가이드</span></a>
+                    <ul class="sub_menu">
+                      <li value="78" class="menu_item">
+                        <a>공통가이드</a>
+                      </li>
+                      <li value="72" class="menu_item">
+                        <a>신용카드</a>
+                      </li>
+                      <li value="79" class="menu_item">
+                        <a>계좌이체</a>
+                      </li>
+                      <li value="73" class="menu_item">
+                        <a>가상계좌</a>
+                      </li>
+                      <li value="74" class="menu_item">
+                        <a>정기결제</a>
+                      </li>
+                      <li value="75" class="menu_item">
+                        <a>브랜드페이</a>
+                      </li>
+                      <li value="76" class="menu_item">
+                        <a>에스크로</a>
+                      </li>
+                      <li value="77" class="menu_item">
+                        <a>지급대행</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="menu_item has_sub">
+                    <a><span>고객센터</span></a>
+                    <ul class="sub_menu">
+                      <li class="menu_item">
+                        <a>공지사항</a>
+                      </li>
+                      <li class="menu_item">
+                        <a>FAQ</a>
+                      </li>
+                      <li class="menu_item">
+                        <a>자료실</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <!----><!----><!---->
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <section class="main-view">
+        <div id="containerDev" class="container_dev" code="common">
+          <div class="content dev_guide_wrap">
+            <div class="inner">
+              <div class="dev_top_area">
+                <div class="sel_box">
+                  <select id="templateSeq" class="sel_base">
+                    <option label="Ver 1.0 20240820" value="Ver 1.0 20240820">
+                      Ver 1.0 20240820
+                    </option>
+                  </select>
+                </div>
+                <div class="title_group">
+                  <span class="badge able">사용가능</span
+                  ><!---->
+                  <h1 class="title">공통가이드</h1>
+                  <p>
+                    다양한 페이먼트 게이트웨이 서비스를 효율적으로 연동할 수
+                    있도록 도와주는 필수 참고 자료입니다.
+                  </p>
+                </div>
+              </div>
+              <div class="dev_menu">
+                <button
+                  id="btn_guide"
+                  type="button"
+                  data-tab="0"
+                  class="btn_dev_menu active"
+                >
+                  개발가이드</button
+                ><button
+                  type="button"
+                  data-tab="1"
+                  class="btn_dev_menu"
+                  style="display: none"
+                >
+                  테스트베드
+                </button>
+              </div>
+              <div class="dev_inner" style="display: block">
+                <div class="dev_contents">
+                  <!-- guide_cont_box -->
+                  <div class="guide_cont_box">
+                    <h1 class="h1_title">환경정보1</h1>
+                    <h1 class="h1_title">환경정보2</h1>
+                    <div class="desc">
+                      <h2 class="h2_title">프로토콜</h2>
+                      <p class="txt">
+                        고객사 API는 SChannel용 프로토콜로서 TLS(전송 계층 보안)
+                        1.2 이상을 지원합니다.
+                      </p>
+                    </div>
+                    <h2 class="h2_title">테스트 고객사</h2>
+                    <p class="txt">
+                      테스트용 정보로 PG API 연동 테스트가 가능합니다.
+                    </p>
+                    <div class="tbl_data_wrap scroller">
+                      <table>
+                        <caption>
+                          테스트 고객사
+                        </caption>
+                        <colgroup>
+                          <col width="240px" />
+                          <col />
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th>파라미터</th>
+                            <th>파라미터 값</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><span class="txt_bold">고객사 아이디</span></td>
+                            <td>o2o</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              API Key - <span class="txt_bold">search</span>
+                            </td>
+                            <td>키 값 생성 필요</td>
+                          </tr>
+                          <tr>
+                            <td>
+                              API Key - <span class="txt_bold">payment</span>
+                            </td>
+                            <td>키 값 생성 필요</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <!--// guide_cont_box -->
+
+                  <!-- guide_cont_box -->
+                  <div class="guide_cont_box">
+                    <h1 class="h1_title">통신규칙</h1>
+                    <p class="txt">
+                      표준 RESTful-API 통신 방식을 따르며, HTTP 1.1
+                      Specification을 준수합니다.<br />
+                      HTTP Method, Resource URL을 요청하면, JSON 데이터를
+                      응답합니다.
+                    </p>
+                    <h2 class="h2_title">응답 데이터 유형</h2>
+                    <h4 class="h4_title">JSON format</h4>
+                    <div class="pre_area">
+                      <pre>
+{
+    "date": "응답 데이터",
+    "ret_code": 응답 코드,
+    "ret_msg": "응답 메시지"
+}
+                                </pre
+                      >
+                    </div>
+                    <h2 class="h2_title">성공 응답 유무</h2>
+                    <p class="txt">
+                      Http Status Code 200 응답은 성공, 그 외 모든 값(200이 아닌
+                      값)은 실패를 의미합니다. 요청 처리 실패 시 반환되는 error
+                      오브젝트 메시지를 반드시 확인해야 합니다.
+                      <span
+                        >고객사의 fall_url 이동 시, 요청 처리 실패에 대한
+                        ret_code, ret_msg 정보가 POST 데이터로 반환됩니다.</span
+                      >
+                    </p>
+                    <h4 class="h4_title">
+                      성공: HTTP Status Code = 200, data 오브젝트 반환
+                    </h4>
+                    <div class="pre_area">
+                      <pre><strong>200: OK</strong>
+{
+    "date": "응답 데이터",
+    "ret_code": 응답 코드,
+    "ret_msg": "응답 메시지"
+}
+                                </pre>
+                    </div>
+                    <h4 class="h4_title">
+                      실패: HTTP Status Code &lt;&gt; 200, error 오브젝트 반환
+                    </h4>
+                    <div class="pre_area">
+                      <pre><strong>400: Bad Request</strong>
+{
+    "ret_code": 응답 코드,
+    "ret_msg": "응답 메시지"
+}
+                                </pre>
+                    </div>
+                    <h2 class="h2_title">보안</h2>
+                    <h3 class="h3_title">API 인증</h3>
+                    <p class="txt">
+                      고객사 계약 후 발급되는 API 키(key)를 Http Request Header
+                      Authorization 항목으로 보내주시기 바랍니다. 고객사 API
+                      키는 결제(payment), 조회(search)용 두 가지가 발급되므로
+                      용도에 맞게 사용하고, 웹사이트에 노출(외부 유출)되지
+                      않도록 주의가 필요합니다. API 키는 고객사 관리자
+                      웹사이트에서 확인하실 수 있습니다.
+                    </p>
+                    <div class="pre_area">
+                      <pre>
+Authorization: SPGKEY (API Key)
+                                </pre
+                      >
+                    </div>
+                    <h3 class="h3_title">결제 인증 ∙ 승인 토큰</h3>
+                    <p class="txt">
+                      고객사 API에서 응답하는 인증 토큰(결제요청 API의
+                      redirect_url 중 token 파라미터)으로 PG 웹 화면 요청의
+                      유효성을, 승인 토큰(사용자 결제가 완료되면, 고객사
+                      return_url로 전달)으로 고객 사 결제 승인 요청의 유효성을
+                      확인합니다.
+                      <span
+                        >인증 토큰의 만료 시간은 30분, 승인 토큰의 만료 시간은
+                        1분 입니다.</span
+                      >
+                    </p>
+                  </div>
+                  <!--// guide_cont_box -->
+
+                  <!-- guide_cont_box -->
+                  <div class="guide_cont_box">
+                    <h1 class="h1_title">결제수단 &amp; 오류코드</h1>
+                    <h2 class="h2_title">결제수단</h2>
+                    <div class="tbl_data_wrap scroller">
+                      <table>
+                        <caption>
+                          결제수단
+                        </caption>
+                        <colgroup>
+                          <col width="240px" />
+                          <col />
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th>결제수단 코드</th>
+                            <th>결제수단 코드 설명</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Selpay</td>
+                            <td>
+                              통합결제창(간편결제, 신용카드,
+                              신용카드(카드번호입력), 가상계좌 선택 UI 호출)
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Bizselpay</td>
+                            <td>
+                              법인통합결제창(신용카드(카드번호입력), 가상계좌,
+                              연계대출 선택 UI 호출)
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Card</td>
+                            <td>일반 신용/체크카드</td>
+                          </tr>
+                          <tr>
+                            <td>Nauthcard</td>
+                            <td>비인증 신용/체크카드 (개인/법인)</td>
+                          </tr>
+                          <tr>
+                            <td>Va</td>
+                            <td>가상계좌</td>
+                          </tr>
+                          <tr>
+                            <td>Shpaycard</td>
+                            <td>전용페이 신용/체크카드</td>
+                          </tr>
+                          <tr>
+                            <td>Shpaybank</td>
+                            <td>전용페이 계좌이체</td>
+                          </tr>
+                          <tr>
+                            <td>Shpay</td>
+                            <td>전용페이 (결제수단 선택 UI 호출)</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <h2 class="h2_title">오류코드</h2>
+                    <div class="tbl_data_wrap scroller">
+                      <table>
+                        <caption>
+                          오류코드
+                        </caption>
+                        <colgroup>
+                          <col width="240px" />
+                          <col width="240px" />
+                          <col />
+                          <col width="240px" />
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th>HTTP 응답 코드</th>
+                            <th>오류 코드</th>
+                            <th>오류 메시지</th>
+                            <th>비고</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>401</td>
+                            <td>998</td>
+                            <td>유효하지 않은 토큰입니다.</td>
+                            <td>인증 오류</td>
+                          </tr>
+                          <tr>
+                            <td>403</td>
+                            <td>993</td>
+                            <td>허용되지 않는 접근 요청입니다.</td>
+                            <td>인증 오류</td>
+                          </tr>
+                          <tr>
+                            <td>405</td>
+                            <td>995</td>
+                            <td>요청 메서드 권한이 없습니다.</td>
+                            <td>HTTP 메서드 오류</td>
+                          </tr>
+                          <tr>
+                            <td>406</td>
+                            <td>500 - 5000</td>
+                            <td>오류 상세 메시지</td>
+                            <td>비즈니스 논리 오류</td>
+                          </tr>
+                          <tr>
+                            <td>500</td>
+                            <td>999</td>
+                            <td>내부 서버 오류</td>
+                            <td>시스템 오류</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <!--// guide_cont_box -->
+
+                  <!-- guide_cont_box -->
+                  <div class="guide_cont_box">
+                    <h1 class="h1_title">카드사 코드 &amp; 기관 코드</h1>
+                    <h2 class="h2_title">카드사 코드</h2>
+                    <div class="tbl_data_wrap scroller">
+                      <table>
+                        <caption>
+                          카드사 코드
+                        </caption>
+                        <colgroup>
+                          <col width="240px" />
+                          <col />
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th>카드사 코드</th>
+                            <th>카드사 명</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>S001</td>
+                            <td>비씨(페이북)</td>
+                          </tr>
+                          <tr>
+                            <td>S002</td>
+                            <td>KB Pay(국민)</td>
+                          </tr>
+                          <tr>
+                            <td>S003</td>
+                            <td>하나</td>
+                          </tr>
+                          <tr>
+                            <td>S004</td>
+                            <td>삼성</td>
+                          </tr>
+                          <tr>
+                            <td>S005</td>
+                            <td>신한</td>
+                          </tr>
+                          <tr>
+                            <td>S006</td>
+                            <td>현대</td>
+                          </tr>
+                          <tr>
+                            <td>S007</td>
+                            <td>롯데</td>
+                          </tr>
+                          <tr>
+                            <td>S008</td>
+                            <td>NH</td>
+                          </tr>
+                          <tr>
+                            <td>S009</td>
+                            <td>씨티(구.한미)</td>
+                          </tr>
+                          <tr>
+                            <td>S010</td>
+                            <td>수협</td>
+                          </tr>
+                          <tr>
+                            <td>S011</td>
+                            <td>우리</td>
+                          </tr>
+                          <tr>
+                            <td>S012</td>
+                            <td>신협</td>
+                          </tr>
+                          <tr>
+                            <td>S013</td>
+                            <td>광주</td>
+                          </tr>
+                          <tr>
+                            <td>S014</td>
+                            <td>전북</td>
+                          </tr>
+                          <tr>
+                            <td>S015</td>
+                            <td>제주</td>
+                          </tr>
+                          <tr>
+                            <td>S016</td>
+                            <td>우체국</td>
+                          </tr>
+                          <tr>
+                            <td>S017</td>
+                            <td>MG새마을금고</td>
+                          </tr>
+                          <tr>
+                            <td>S018</td>
+                            <td>저축은행</td>
+                          </tr>
+                          <tr>
+                            <td>S019</td>
+                            <td>카카오뱅크</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <h2 class="h2_title">기관코드</h2>
+                    <div class="tbl_data_wrap scroller">
+                      <table>
+                        <caption>
+                          기관코드
+                        </caption>
+                        <colgroup>
+                          <col width="240px" />
+                          <col />
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th>기관 코드</th>
+                            <th>기관 명</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>002</td>
+                            <td>KDB산업은행</td>
+                          </tr>
+                          <tr>
+                            <td>003</td>
+                            <td>IBK기업은행</td>
+                          </tr>
+                          <tr>
+                            <td>004</td>
+                            <td>KB국민은행</td>
+                          </tr>
+                          <tr>
+                            <td>007</td>
+                            <td>수협은행</td>
+                          </tr>
+                          <tr>
+                            <td>011</td>
+                            <td>NH농협은행</td>
+                          </tr>
+                          <tr>
+                            <td>020</td>
+                            <td>우리은행</td>
+                          </tr>
+                          <tr>
+                            <td>023</td>
+                            <td>SC제일은행</td>
+                          </tr>
+                          <tr>
+                            <td>027</td>
+                            <td>한국씨티은행</td>
+                          </tr>
+                          <tr>
+                            <td>031</td>
+                            <td>대구은행</td>
+                          </tr>
+                          <tr>
+                            <td>032</td>
+                            <td>부산은행</td>
+                          </tr>
+                          <tr>
+                            <td>034</td>
+                            <td>광주은행</td>
+                          </tr>
+                          <tr>
+                            <td>035</td>
+                            <td>제주은행</td>
+                          </tr>
+                          <tr>
+                            <td>037</td>
+                            <td>전북은행</td>
+                          </tr>
+                          <tr>
+                            <td>039</td>
+                            <td>경남은행</td>
+                          </tr>
+                          <tr>
+                            <td>081</td>
+                            <td>하나은행</td>
+                          </tr>
+                          <tr>
+                            <td>088</td>
+                            <td>신한은행</td>
+                          </tr>
+                          <tr>
+                            <td>089</td>
+                            <td>케이뱅크</td>
+                          </tr>
+                          <tr>
+                            <td>090</td>
+                            <td>카카오뱅크</td>
+                          </tr>
+                          <tr>
+                            <td>092</td>
+                            <td>토스뱅크</td>
+                          </tr>
+                          <tr>
+                            <td>012</td>
+                            <td>농협중앙회</td>
+                          </tr>
+                          <tr>
+                            <td>071</td>
+                            <td>우정사업본부</td>
+                          </tr>
+                          <tr>
+                            <td>045</td>
+                            <td>새마을금고중앙회</td>
+                          </tr>
+                          <tr>
+                            <td>048</td>
+                            <td>신협중앙회</td>
+                          </tr>
+                          <tr>
+                            <td>050</td>
+                            <td>저축은행중앙회</td>
+                          </tr>
+                          <tr>
+                            <td>064</td>
+                            <td>산림조합중앙회</td>
+                          </tr>
+                          <tr>
+                            <td>218</td>
+                            <td>KB증권</td>
+                          </tr>
+                          <tr>
+                            <td>227</td>
+                            <td>KTB투자증권</td>
+                          </tr>
+                          <tr>
+                            <td>238</td>
+                            <td>미래에셋증권</td>
+                          </tr>
+                          <tr>
+                            <td>240</td>
+                            <td>삼성증권</td>
+                          </tr>
+                          <tr>
+                            <td>243</td>
+                            <td>한국투자증권</td>
+                          </tr>
+                          <tr>
+                            <td>247</td>
+                            <td>NH투자증권</td>
+                          </tr>
+                          <tr>
+                            <td>261</td>
+                            <td>교보증권</td>
+                          </tr>
+                          <tr>
+                            <td>262</td>
+                            <td>하이투자증권</td>
+                          </tr>
+                          <tr>
+                            <td>263</td>
+                            <td>현대차증권</td>
+                          </tr>
+                          <tr>
+                            <td>264</td>
+                            <td>키움증권</td>
+                          </tr>
+                          <tr>
+                            <td>265</td>
+                            <td>이베스트투자증권</td>
+                          </tr>
+                          <tr>
+                            <td>266</td>
+                            <td>SK증권</td>
+                          </tr>
+                          <tr>
+                            <td>267</td>
+                            <td>대신증권</td>
+                          </tr>
+                          <tr>
+                            <td>269</td>
+                            <td>한화투자증권</td>
+                          </tr>
+                          <tr>
+                            <td>270</td>
+                            <td>하나금융투자</td>
+                          </tr>
+                          <tr>
+                            <td>271</td>
+                            <td>토스증권</td>
+                          </tr>
+                          <tr>
+                            <td>278</td>
+                            <td>신한금융투자</td>
+                          </tr>
+                          <tr>
+                            <td>279</td>
+                            <td>DB금융투자</td>
+                          </tr>
+                          <tr>
+                            <td>280</td>
+                            <td>유진투자증권</td>
+                          </tr>
+                          <tr>
+                            <td>287</td>
+                            <td>메리츠증권</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <!--// guide_cont_box -->
+
+                  <!-- guide_cont_box -->
+                  <div class="guide_cont_box">
+                    <h1 class="h1_title">인 앱 결제 연동 앱 스키마</h1>
+                    <p class="txt">
+                      O2O 플랫폼 인앱 결제를 진행하는 고객사에 설정이 필요한 앱
+                      스키마 정보입니다. 아래 표의 앱 스키마 정보를 설정하지
+                      않는 경우, 고객사 앱에서 인앱 결제 관련 앱으로의 전환
+                      과정이 정상적이지 않을 수 있으니 주의가 필요합니다.
+                    </p>
+                    <h2 class="h2_title">인앱 결제 연동</h2>
+                    <h3 class="h3_title">AOS</h3>
+                    <div class="pre_area">
+                      <pre>
+안드로이드 결제 시 안심클릭, 앱카드, ISP를 통한 결제 중 백신, 앱가드 앱 등을 실행하기 위한 처리가 필요합니다.
+안드로이드 11(API 30) 패키지로 개발 및 업데이트 하는 경우 아래 두가지 방안 중 한 가지를 필수로 조치하시길 바랍니다.
+1) &lt;queries&gt; 요소에 패키지 정의
+     - AndroidManifest.xml 파일 수정
+     - 매니페스트 파일의 &lt;queries&gt; 요소에 패키지를 정의하면 패키지의 가시성이 확보됩니다.
+     - 카드사 및 백신의 패키지명은 첨부 파일을 참고하시길 바랍니다.
+2) WebViewClient shouldOverrideUrlLoading() 예외처리 로직 추가
+     - 재정의한 shouldOverrideUrlLoading() 메소드 로직 수정 필요
+     - 앱 설치여부 확인을 위해 startActivity() 호출 전에 패키지 정보를 조회하는 경우, 설치 여부 확인 로직을 제거하고 바로 startActivity()을 호출
+     - startActivity() 호출 시 ActivityNotFoundException (Message: No Activity found to handle Intent)이 발생한 경우 앱이 설치되지 않은 것으로 간주하고 앱 설치를 위해 마켓으로 이동하도록 처리
+                                </pre
+                      >
+                    </div>
+                    <h3 class="h3_title">iOS</h3>
+                    <div class="pre_area">
+                      <pre>
+REST API를 통해 결제 페이지의 URL을 받으신 후 결제창을 WEBVIEW 방식을 통해 여는 방법을 사용하시면 됩니다.
+App-Schema 이슈발생 시 적용 할 수 있는 방법은 아래 두 가지 중 한가지로 적용하실 수 있습니다.
+    1) info.plist 파일에 "LSApplicationQueriesSchemes" 배열내 스키마 목록 추가
+    2) Xcode 에서 LSApplicationWueriesSchemes &gt;item 항목에 결제 수단을 추가
+                                </pre
+                      >
+                    </div>
+                    <h2 class="h2_title">AOS 앱 스키마</h2>
+                    <div class="tbl_data_wrap scroller">
+                      <table>
+                        <caption>
+                          AOS 앱 스키마
+                        </caption>
+                        <colgroup>
+                          <col width="240px" />
+                          <col />
+                          <col width="240px" />
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th>구분</th>
+                            <th>앱 패키지 명</th>
+                            <th>비고</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td rowspan="55">신용카드</td>
+                            <td>ottesmartpay</td>
+                            <td>롯데모바일결제앱</td>
+                          </tr>
+                          <tr>
+                            <td>lotteappcard</td>
+                            <td>롯데카드-앱카드</td>
+                          </tr>
+                          <tr>
+                            <td>shinhan-sr-ansimclick</td>
+                            <td>신한카드-앱카드</td>
+                          </tr>
+                          <tr>
+                            <td>Smshinhanansimclick</td>
+                            <td>신한카드-공인인증서</td>
+                          </tr>
+                          <tr>
+                            <td>Smshinhancardusim</td>
+                            <td>신한카드</td>
+                          </tr>
+                          <tr>
+                            <td>shinhan-sr-ansimclick-lpay</td>
+                            <td>신한페이판-엘페이</td>
+                          </tr>
+                          <tr>
+                            <td>shinhan-sr-ansimclick-naverpay</td>
+                            <td>신한페이판-네이버페이</td>
+                          </tr>
+                          <tr>
+                            <td>shinhan-sr-ansimclick-payco</td>
+                            <td>신한페이판-페이코</td>
+                          </tr>
+                          <tr>
+                            <td>shinhan-sr-ansimclick_samsungpay</td>
+                            <td>신한페이판-삼성페이</td>
+                          </tr>
+                          <tr>
+                            <td>shinhan-sr-ansimclick_lgpay</td>
+                            <td>신한페이판-LG페이</td>
+                          </tr>
+                          <tr>
+                            <td>Citimobile</td>
+                            <td>씨티모바일앱 스마트간편결제</td>
+                          </tr>
+                          <tr>
+                            <td>Citimobileapp</td>
+                            <td>씨티카드-간편결제</td>
+                          </tr>
+                          <tr>
+                            <td>Citispay</td>
+                            <td>씨티카드-앱카드</td>
+                          </tr>
+                          <tr>
+                            <td>Citicardappkr</td>
+                            <td>씨티카드-공인인증서</td>
+                          </tr>
+                          <tr>
+                            <td>Citicardapp</td>
+                            <td>씨티카드 일반결제 - 공인인증서 관리앱</td>
+                          </tr>
+                          <tr>
+                            <td>Ispmobile</td>
+                            <td>ISP결제앱</td>
+                          </tr>
+                          <tr>
+                            <td>kb-acp</td>
+                            <td>국민카드-앱카드</td>
+                          </tr>
+                          <tr>
+                            <td>hdcardappcardansimclick</td>
+                            <td>현대앱카드</td>
+                          </tr>
+                          <tr>
+                            <td>Smhyundaiansimclick</td>
+                            <td>현대카드 공인인증서 관리앱</td>
+                          </tr>
+                          <tr>
+                            <td>mpocket.online.ansimclick</td>
+                            <td>삼성카드 m포켓(앱카드)</td>
+                          </tr>
+                          <tr>
+                            <td>Ansimclickscard</td>
+                            <td>삼성카드-온라인결제</td>
+                          </tr>
+                          <tr>
+                            <td>mpocket.ansimclick.cert</td>
+                            <td>삼성 앱카드-공동인증서</td>
+                          </tr>
+                          <tr>
+                            <td>Samsungpay</td>
+                            <td>삼성카드-삼성페이</td>
+                          </tr>
+                          <tr>
+                            <td>Scardcertiapp</td>
+                            <td>삼성카드-공인인증서</td>
+                          </tr>
+                          <tr>
+                            <td>Tswansimclick</td>
+                            <td>삼성카드-온라인결제</td>
+                          </tr>
+                          <tr>
+                            <td>Cloudpay</td>
+                            <td>하나SK카드 모비페이</td>
+                          </tr>
+                          <tr>
+                            <td>Hanamopmoasign</td>
+                            <td>하나카드 공인인증앱</td>
+                          </tr>
+                          <tr>
+                            <td>Hanaansim</td>
+                            <td>하나SK카드 안심클릭</td>
+                          </tr>
+                          <tr>
+                            <td>Hanawalletmembers</td>
+                            <td>하나멤버스월렛</td>
+                          </tr>
+                          <tr>
+                            <td>nonghyupcardansimclick</td>
+                            <td>농협카드-공인인증서</td>
+                          </tr>
+                          <tr>
+                            <td>Nhappcardansimclick</td>
+                            <td>농협카드-앱카드</td>
+                          </tr>
+                          <tr>
+                            <td>nhallonepayansimclick</td>
+                            <td>농협카드-올원페이</td>
+                          </tr>
+                          <tr>
+                            <td>nhappcash-acp</td>
+                            <td>농협</td>
+                          </tr>
+                          <tr>
+                            <td>v3mobileplusweb</td>
+                            <td>NH카드 - 백신(V3)</td>
+                          </tr>
+                          <tr>
+                            <td>Wibeetalk</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>Woorimembers</td>
+                            <td>우리은행-위비멤버스</td>
+                          </tr>
+                          <tr>
+                            <td>PortalCenterWB</td>
+                            <td>우리은행-금융센터</td>
+                          </tr>
+                          <tr>
+                            <td>SmartBank2WB</td>
+                            <td>우리은행-원터치개인</td>
+                          </tr>
+                          <tr>
+                            <td>SmartBank2WIB</td>
+                            <td>우리은행-위비뱅크</td>
+                          </tr>
+                          <tr>
+                            <td>Wooripay</td>
+                            <td>우리페이</td>
+                          </tr>
+                          <tr>
+                            <td>Wooribank</td>
+                            <td>우리 WON</td>
+                          </tr>
+                          <tr>
+                            <td>뱅킹</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>Uppay</td>
+                            <td>은련카드</td>
+                          </tr>
+                          <tr>
+                            <td>bankwallet</td>
+                            <td>뱅크월렛</td>
+                          </tr>
+                          <tr>
+                            <td>kdb-bankpay</td>
+                            <td>산업은행</td>
+                          </tr>
+                          <tr>
+                            <td>ibk-bankpay</td>
+                            <td>기업은행</td>
+                          </tr>
+                          <tr>
+                            <td>kb-bankpay</td>
+                            <td>국민은행</td>
+                          </tr>
+                          <tr>
+                            <td>Liivbank</td>
+                            <td>LiiV(국민은행)</td>
+                          </tr>
+                          <tr>
+                            <td>kb-event</td>
+                            <td>KBPay</td>
+                          </tr>
+                          <tr>
+                            <td>kb-screen</td>
+                            <td>KBPay</td>
+                          </tr>
+                          <tr>
+                            <td><span class="txt_bold">Newliiv</span></td>
+                            <td><span class="txt_bold">리브 Next</span></td>
+                          </tr>
+                          <tr>
+                            <td><span class="txt_bold">kbbank</span></td>
+                            <td><span class="txt_bold">KB스타뱅킹</span></td>
+                          </tr>
+                          <tr>
+                            <td>lottecard</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>appcard</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>citispayapp</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>인터넷뱅킹</td>
+                            <td>kftc-bankpay</td>
+                            <td>금융결제원 인터넷뱅킹</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="5">간편결제</td>
+                            <td>payco</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>lpayapp</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>shinsegaeeasypayment</td>
+                            <td>SSGPAY</td>
+                          </tr>
+                          <tr>
+                            <td>smilepayapp</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>supertoss</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="21">백신</td>
+                            <td>ansimclickipcollect</td>
+                            <td>ansimclickipcollect</td>
+                          </tr>
+                          <tr>
+                            <td>Vguardstart</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>droidx3host</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>Droidxantivirus</td>
+                            <td>안심클릭 결제시 백신</td>
+                          </tr>
+                          <tr>
+                            <td>Vguard</td>
+                            <td>삼성카드, 신한카드, 씨티카드 사용 백신</td>
+                          </tr>
+                          <tr>
+                            <td>Mvaccinestartbg</td>
+                            <td>TouchEn mVaccine (신한)</td>
+                          </tr>
+                          <tr>
+                            <td>Mvaccineexit</td>
+                            <td>TouchEn mVaccine (신한)</td>
+                          </tr>
+                          <tr>
+                            <td>Mvaccinecheck</td>
+                            <td>TouchEn mVaccine (신한)</td>
+                          </tr>
+                          <tr>
+                            <td>Appfree</td>
+                            <td>공동인증서</td>
+                          </tr>
+                          <tr>
+                            <td>v3mobile</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>Ansimclick</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>market://details?id=com.shcard.smartpay</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>http://m.ahnlab.com/kr/site/download</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>https://m.ahnlab.com/kr/site/download</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>Vguardcheck</td>
+                            <td>V-Guard (삼성)</td>
+                          </tr>
+                          <tr>
+                            <td>Vguardend</td>
+                            <td>V-Guard (삼성)</td>
+                          </tr>
+                          <tr>
+                            <td>Callonlinepay</td>
+                            <td>엘지페이 (삼성, KB)</td>
+                          </tr>
+                          <tr>
+                            <td>Mvaccine</td>
+                            <td>백신</td>
+                          </tr>
+                          <tr>
+                            <td>ahnlabv3mobileplus</td>
+                            <td>롯데카드 사용 백신</td>
+                          </tr>
+                          <tr>
+                            <td>Smartwal</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>mvaccinestart</td>
+                            <td>외환카드 사용 백신 변경</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="19">은행</td>
+                            <td>keb-bankpay</td>
+                            <td>KEB하나은행</td>
+                          </tr>
+                          <tr>
+                            <td>sh-bankpay</td>
+                            <td>수협</td>
+                          </tr>
+                          <tr>
+                            <td>nhb-bankpay</td>
+                            <td>농협</td>
+                          </tr>
+                          <tr>
+                            <td>nh-bankpay</td>
+                            <td>농축협</td>
+                          </tr>
+                          <tr>
+                            <td>wr-bankpay</td>
+                            <td>우리은행</td>
+                          </tr>
+                          <tr>
+                            <td>sc-bankpay</td>
+                            <td>SC은행</td>
+                          </tr>
+                          <tr>
+                            <td>s-bankpay</td>
+                            <td>신한은행</td>
+                          </tr>
+                          <tr>
+                            <td>ct-bankpay</td>
+                            <td>씨티은행</td>
+                          </tr>
+                          <tr>
+                            <td>dg-bankpay</td>
+                            <td>대구은행</td>
+                          </tr>
+                          <tr>
+                            <td>bnk-bankpay</td>
+                            <td>부산은행</td>
+                          </tr>
+                          <tr>
+                            <td>kj-bankpay</td>
+                            <td>광주은행</td>
+                          </tr>
+                          <tr>
+                            <td>jj-bankpay</td>
+                            <td>제주은행</td>
+                          </tr>
+                          <tr>
+                            <td>jb-bankpay</td>
+                            <td>전북은행</td>
+                          </tr>
+                          <tr>
+                            <td>kn-bankpay</td>
+                            <td>경남은행</td>
+                          </tr>
+                          <tr>
+                            <td>kp-bankpay</td>
+                            <td>우정사업본부</td>
+                          </tr>
+                          <tr>
+                            <td>cu-bankpay</td>
+                            <td>신협</td>
+                          </tr>
+                          <tr>
+                            <td>mg-bankpay</td>
+                            <td>새마을</td>
+                          </tr>
+                          <tr>
+                            <td>kbn-bankpay</td>
+                            <td>K뱅크</td>
+                          </tr>
+                          <tr>
+                            <td>kkb-bankpay</td>
+                            <td>카카오뱅크</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="15">기타</td>
+                            <td>.apk</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>DroidXAntivirus.apk</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>deeplink</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>upapp</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>intmoney</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>http://market.android.com</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>https://market.android.com</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>MW_PUSH</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>tel</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                          <tr>
+                            <td>lmslpay</td>
+                            <td>신규L.POINT APP</td>
+                          </tr>
+                          <tr>
+                            <td>itms-apps</td>
+                            <td>앱스토어</td>
+                          </tr>
+                          <tr>
+                            <td>daumapps</td>
+                            <td>다음</td>
+                          </tr>
+                          <tr>
+                            <td>naversearchapp</td>
+                            <td>네이버</td>
+                          </tr>
+                          <tr>
+                            <td>googlechromes</td>
+                            <td>크롬</td>
+                          </tr>
+                          <tr>
+                            <td>onestore://</td>
+                            <td>원스토어</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <h2 class="h2_title">AOS 앱 패키지</h2>
+                    <div class="tbl_data_wrap scroller">
+                      <table>
+                        <caption>
+                          AOS 앱 패키지
+                        </caption>
+                        <colgroup>
+                          <col width="240px" />
+                          <col />
+                          <col width="240px" />
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th>구분</th>
+                            <th>App 패키지명</th>
+                            <th>비고</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td rowspan="17">신용카드</td>
+                            <td>com.shcard.smartpay</td>
+                            <td>신한카드</td>
+                          </tr>
+                          <tr>
+                            <td>com.shinhancard.smartshinhan</td>
+                            <td>신한카드</td>
+                          </tr>
+                          <tr>
+                            <td>kr.co.samsungcard.mpocket</td>
+                            <td>삼성카드</td>
+                          </tr>
+                          <tr>
+                            <td>com.kbcard.cxh.appcard</td>
+                            <td>KB카드</td>
+                          </tr>
+                          <tr>
+                            <td>com.kbstar.liivbank</td>
+                            <td>KB카드</td>
+                          </tr>
+                          <tr>
+                            <td>com.kbstar.reboot</td>
+                            <td>KB카드 New Liib</td>
+                          </tr>
+                          <tr>
+                            <td>nh.smart.nhallonepay</td>
+                            <td>NH카드</td>
+                          </tr>
+                          <tr>
+                            <td>com.hyundaicard.appcard</td>
+                            <td>현대카드</td>
+                          </tr>
+                          <tr>
+                            <td>com.lge.lgpay</td>
+                            <td>엘지페이 (삼성, KB)</td>
+                          </tr>
+                          <tr>
+                            <td>com.wooricard.smartapp</td>
+                            <td>우리 WON 뱅킹</td>
+                          </tr>
+                          <tr>
+                            <td>com.wooribank.smart.npib</td>
+                            <td>우리 WON 뱅킹</td>
+                          </tr>
+                          <tr>
+                            <td>kvp.jjy.MispAndroid320</td>
+                            <td>BC카드</td>
+                          </tr>
+                          <tr>
+                            <td>com.hanaskcard.paycla</td>
+                            <td>하나카드</td>
+                          </tr>
+                          <tr>
+                            <td>kr.co.hanamembers.hmscustome</td>
+                            <td>하나카드(멤버스결제)</td>
+                          </tr>
+                          <tr>
+                            <td>com.lcacApp</td>
+                            <td>롯데카드</td>
+                          </tr>
+                          <tr>
+                            <td>kr.co.citibank.citimobile</td>
+                            <td>씨티카드</td>
+                          </tr>
+                          <tr>
+                            <td>com.shinhan.smartcaremgr</td>
+                            <td>신한 슈퍼SOL</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="2">공인인증</td>
+                            <td>com.hanaskcard.rocomo.potal</td>
+                            <td>하나카드(인증)</td>
+                          </tr>
+                          <tr>
+                            <td>com.lumensoft.touchenappfree</td>
+                            <td>공동인증서</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="3">백신</td>
+                            <td>com.TouchEn.mVaccine.webs</td>
+                            <td>TouchEn mVaccine</td>
+                          </tr>
+                          <tr>
+                            <td>kr.co.shiftworks.vguardweb</td>
+                            <td>V-Guard</td>
+                          </tr>
+                          <tr>
+                            <td>com.ahnlab.v3mobileplus</td>
+                            <td>V3</td>
+                          </tr>
+                          <tr>
+                            <td>인터넷뱅킹</td>
+                            <td>com.kftc.bankpay.android</td>
+                            <td>금결원</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="9">간편결제</td>
+                            <td>viva.republica.toss</td>
+                            <td>토스</td>
+                          </tr>
+                          <tr>
+                            <td>com.nhn.android.search</td>
+                            <td>네이버페이</td>
+                          </tr>
+                          <tr>
+                            <td>com.lottemembers.android</td>
+                            <td>엘페이</td>
+                          </tr>
+                          <tr>
+                            <td>com.ssg.serviceapp.android.egiftcertificate</td>
+                            <td>SSG페이</td>
+                          </tr>
+                          <tr>
+                            <td>com.nhnent.payapp</td>
+                            <td>페이코</td>
+                          </tr>
+                          <tr>
+                            <td>com.kakao.talk</td>
+                            <td>카카오페이</td>
+                          </tr>
+                          <tr>
+                            <td>com.samsung.android.spay</td>
+                            <td>삼성페이</td>
+                          </tr>
+                          <tr>
+                            <td>com.samsung.android.spaylite</td>
+                            <td>삼성페이 미니</td>
+                          </tr>
+                          <tr>
+                            <td>com.mysmilepay.app</td>
+                            <td>스마일페이</td>
+                          </tr>
+                          <tr>
+                            <td>휴대폰결제</td>
+                            <td>uplus.membership</td>
+                            <td>휴대폰결제 (LGU)</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="3">선불카드</td>
+                            <td>com.tmoney.inapp</td>
+                            <td>티머니 인앱결제모듈</td>
+                          </tr>
+                          <tr>
+                            <td>com.tmoney.nfc_pay</td>
+                            <td>티머니 NFC</td>
+                          </tr>
+                          <tr>
+                            <td>com.ebcard.cashbeeinapp</td>
+                            <td>캐시비 인앱</td>
+                          </tr>
+                          <tr>
+                            <td rowspan="3">본인인증</td>
+                            <td>com.sktelecom.tauth</td>
+                            <td>KCB 휴대폰 본인인증 (SKT)</td>
+                          </tr>
+                          <tr>
+                            <td>com.lguplus.smartotp</td>
+                            <td>KCB 휴대폰 본인인증 (LGU)</td>
+                          </tr>
+                          <tr>
+                            <td>com.kt.ktauth</td>
+                            <td>KCB 휴대폰 본인인증 (KT)</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <h2 class="h2_title">iOS 앱 스키마</h2>
+                    <div class="pre_area">
+                      <pre>
+&lt;key&gt;LSApplicationQueriesSchemes&lt;/key&gt;
+&lt;array&gt;
+    &lt;string&gt;ispmobile&lt;/string&gt;                                    &lt;!--ISP모바일--&gt;
+    &lt;string&gt;kb-acp&lt;/string&gt;                                        &lt;!--국민카드-앱카드--&gt;
+    &lt;string&gt;liivbank&lt;/string&gt;                                       &lt;!--Liiv(KB국민은행)--&gt;
+    &lt;string&gt;newliiv&lt;/string&gt;                                        &lt;!--리브 Next--&gt;
+    &lt;string&gt;kbbank&lt;/string&gt;                                       &lt;!--KB스타뱅킹--&gt;
+    &lt;string&gt;hdcardappcardansimclick&lt;/string&gt;                &lt;!--현대카드-앱카드--&gt;
+    &lt;string&gt;smhyundaiansimclick&lt;/string&gt;                     &lt;!--현대카드-공인인증서--&gt;
+    &lt;string&gt;shinhan-sr-ansimclick&lt;/string&gt;                     &lt;!--신한카드-앱카드--&gt;
+    &lt;string&gt;smshinhanansimclick&lt;/string&gt;                      &lt;!--신한카드-공인인증서--&gt;
+    &lt;string&gt;smshinhancardusim&lt;/string&gt;                       &lt;!--신한카드--&gt;
+    &lt;string&gt;mpocket.online.ansimclick&lt;/string&gt;               &lt;!--삼성카드-앱카드--&gt;
+    &lt;string&gt;ansimclickscard&lt;/string&gt;                            &lt;!--삼성카드-온라인결제--&gt;
+    &lt;string&gt;ansimclickipcollect&lt;/string&gt;                        &lt;!--삼성카드-온라인결제--&gt;
+    &lt;string&gt;vguardstart&lt;/string&gt;                                 &lt;!--삼성카드-백신--&gt;
+    &lt;string&gt;samsungpay&lt;/string&gt;                               &lt;!--삼성카드-삼성페이--&gt;
+    &lt;string&gt;scardcertiapp&lt;/string&gt;                              &lt;!--삼성카드-공인인증서--&gt;
+    &lt;string&gt;tswansimclick&lt;/string&gt;                              &lt;!--삼성카드온라인결제--&gt;
+    &lt;string&gt;lottesmartpay&lt;/string&gt;                              &lt;!--롯데카드-모바일결제--&gt;
+    &lt;string&gt;lotteappcard&lt;/string&gt;                               &lt;!--롯데카드-앱카드--&gt;
+    &lt;string&gt;ahnlabv3mobileplus&lt;/string&gt;                        &lt;!--롯데카드사용백신--&gt;
+    &lt;string&gt;cloudpay&lt;/string&gt;                                     &lt;!--하나카드-앱카드--&gt;
+    &lt;string&gt;hanamopmoasign&lt;/string&gt;                               &lt;!--하나카드공인인증앱--&gt;
+    &lt;string&gt;hanaansim&lt;/string&gt;                                    &lt;!--하나SK카드안심클릭--&gt;
+    &lt;string&gt;hanawalletmembers&lt;/string&gt;                            &lt;!--하나멤버스월렛--&gt;
+    &lt;string&gt;nhappvardansimclick&lt;/string&gt;                          &lt;!--농협카드-앱카드--&gt;
+    &lt;string&gt;nonghyupcardansimclick&lt;/string&gt;                       &lt;!--농협카드-공인인증서--&gt;
+    &lt;string&gt;nhappcardansimclick&lt;/string&gt;                          &lt;!--농협카드앱카드--&gt;
+    &lt;string&gt;nhallonepayansimclick&lt;/string&gt;                        &lt;!--농협카드올원페이--&gt;
+    &lt;string&gt;nhappcash-acp&lt;/string&gt;                                &lt;!--농협--&gt;
+    &lt;string&gt;citispay&lt;/string&gt;                                     &lt;!--씨티카드-앱카드--&gt;
+    &lt;string&gt;citicardappkr&lt;/string&gt;                                &lt;!--씨티카드-공인인증서--&gt;
+    &lt;string&gt;citimobileapp&lt;/string&gt;                                &lt;!--씨티카드-간편결제--&gt;
+    &lt;string&gt;Wooripay&lt;/string&gt;                                     &lt;!--우리페이--&gt;
+    &lt;string&gt;com.wooricard.wcard&lt;/string&gt;                          &lt;!--우리WON--&gt;
+
+    &lt;string&gt;NewSmartPib&lt;/string&gt;                             &lt;!--우리WON뱅킹 앱--&gt;
+    &lt;string&gt;lmslpay&lt;/string&gt;                                 &lt;!--엘페이--&gt;
+    &lt;string&gt;supertoss&lt;/string&gt;                               &lt;!--토스--&gt;
+    &lt;string&gt;payco&lt;/string&gt;                                   &lt;!--페이코--&gt;
+    &lt;string&gt;kakaotalk&lt;/string&gt;                               &lt;!--카카오페이--&gt;
+    &lt;string&gt;naversearchapp&lt;/string&gt;                          &lt;!--네이버페이--&gt;
+    &lt;string&gt;shinsegaeeasypayment&lt;/string&gt;                    &lt;!--SSGPAY--&gt;
+    &lt;string&gt;callonlinepay&lt;/string&gt;                           &lt;!--LG페이--&gt;
+
+    &lt;string&gt;uppay&lt;/string&gt;                                    &lt;!--은련카드--&gt;
+    &lt;string&gt;mvaccinestart&lt;/string&gt;                            &lt;!--외환카드--&gt;
+    &lt;string&gt;citicardapp&lt;/string&gt;                              &lt;!--씨티카드일반결제-공인인증서관리앱--&gt;
+    &lt;string&gt;droidx3host&lt;/string&gt;                              &lt;!--백신--&gt;
+    &lt;string&gt;droidxantivirus&lt;/string&gt;                          &lt;!--안심클릭결제시백신설치또는실행(현대카드예)--&gt;
+    &lt;string&gt;vguard&lt;/string&gt;                                   &lt;!--삼성카드,신한카드,씨티카드사용백신--&gt;
+&lt;/array&gt;
+
+                                </pre
+                      >
+                    </div>
+                  </div>
+                  <!--// guide_cont_box -->
+
+                  <!-- guide_cont_box -->
+                  <div class="guide_cont_box">
+                    <h1 class="h1_title">ISP/페이북 결제연동 참고사항</h1>
+                    <h2 class="h2_title">MainActivity 구성</h2>
+                    <ol class="list_num">
+                      <li>
+                        인증을 요청할 카드를 선택, 전자금융거래 이용약관 등의
+                        동의 이후 ISP를 실행합니다 (*ISP 설치여부 체크 필요)
+                      </li>
+                      <li>
+                        ISP 인증 성공(또는 취소) 이후 콜백 화면에서 인증 처리
+                        여부를 판단하고 적절한 화면을 표시합니다.
+                      </li>
+                    </ol>
+                    <h2 class="h2_title">AndroidManifest.xml ISP 설정</h2>
+                    <p class="txt">
+                      ISP 처리 이후 인증을 요청했던 APP의 웹뷰로 콜백 결과를
+                      전달받을 수 있도록, 결과 수신용 Activity에 아래와 같은
+                      intent-filter를 설정합니다.
+                    </p>
+                    <div class="pre_area">
+                      <pre>
+&lt;activity
+    android:name="com.spg.spgwebviewtest.MainResultActivity"
+    android:label="@string/app_name" &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.VIEW" /&gt;
+        &lt;category android:name="android.intent.category.DEFAULT" /&gt;
+        &lt;category android:name="android.intent.category.BROWSABLE" /&gt;
+        &lt;data android:scheme="spgapptest" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+
+                                </pre
+                      >
+                    </div>
+                    <h2 class="h2_title">MainActivity 구현</h2>
+                    <p class="txt">
+                      안내의 모바일 안전결제(ISP/페이북) 연동을 위해, 아래
+                      TestWebViewClient 소스코드처럼 ISP 결제앱 설정이
+                      필요합니다.
+                    </p>
+                    <div class="pre_area">
+                      <pre>
+private class TestWebViewClient extents WebViewClient {
+    @Override
+    public boolean shouldOverrideUrlLoading (WebView view, String url) {
+        mContext = MainActivity.this;
+
+        if (url.contains("droidxantivirus")  //안심클릭 결제 시 백신 설치 또는 실행(현대카드 예)
+            ... ...
+            || url.contains("ispmobile")     //ISP 결제 앱
+            ... ...
+        ){ ... ...
+
+                                </pre
+                      >
+                    </div>
+                    <p class="txt">
+                      모바일 안전결제(ISP/페이북)으로부터 전달받은 URL을 아래와
+                      같이 처리합니다.
+                    </p>
+                    <div class="pre_area">
+                      <pre>
+// ISP 앱의 콜백(Callback)을 전달받기 위한 앱 스키마
+private final String APP_SCHEME_URL = "spgapptest://";
+// ISP 앱에서 취소 선택 시 URI
+private final String APP_SCHEME_CANCEL_URL = APP_SCHEME_URL + "ISPCancel/";
+// ISP 앱에서 인증 성공 시 URI
+private final String APP_SCHEME_SUCCESS_URL = APP_SCHEME_URL + "ISPSuccess/";
+… …
+/*
+* ISP로부터 전달받은 URI에 따라 결제 최종 확인 또는 결제 요청 이전의 페이지를 표시합니다.
+* @param resultUrl ISP로부터 전달받은 URI
+*/
+private void getResultPage(Uri resultUri) {
+    String schemaUrl = resultUri.toString();
+    String urlString = null;
+
+    if(schemaUrl.startsWith(APP_SCHEMA_SUCCESS_URI)){ //ISP 인증을 성공한 경우
+        if(MainActivity.mContext != null){
+            (Activity) MainActivity.mContext).finish();
+        }
+        urlString = schemaUrl.substring(APP_SCHEMA_SUCCESS_URI.length());
+        mWvCardResultView.loadUrl(urlString);
+    }else if(schemaUrl.startsWith(APP_SCHEMA_CANCEL_URI)){ //ISP앱에서 취소를 선택한 경우
+        if(MainActivity.mContext != null){
+            ((Activity) MainActivity.mContext).finish();
+        }
+        urlString = schemaUrl.substring(APP_SCHEMA_CANCEL_URI.length());
+        mWvCardResultView.loadUrl(urlString);
+    }
+}
+
+                                </pre
+                      >
+                    </div>
+                  </div>
+                  <!--// guide_cont_box -->
+                </div>
+              </div>
+              <div class="dev_inner" style="display: none">
+                <iframe
+                  style="width: 100%; height: 70vh; border: 0px"
+                  src="https://oadofd.ddangyo.com/swagger-ui/index.html?urls.primaryName=28-basic.json"
+                ></iframe>
+              </div>
+            </div>
+            <nav
+              id="dynamic-navigator"
+              class="navigator"
+              aria-label="메인 탐색"
+            >
+              <!-- 본문에 h1_title과 h2_title이 생성될 때, 이곳에 동적으로 리스트가 생성됩니다. -->
+            </nav>
+          </div>
+        </div>
+      </section>
+      <div>
+        <div id="footerDev" class="footer_dev">
+          <div class="inner">
+            <div class="f_cont">
+              <div class="f_top">
+                <div class="f_logo">
+                  <span class="sr_only">신한은행</span>
+                </div>
+                <div class="f_link">
+                  <ul>
+                    <li>
+                      <a href="/terms/SERVICE">전자금융거래 이용약관</a>
+                    </li>
+                    <li>
+                      <a href="/terms/PRIVACY">개인정보 처리방침</a>
+                    </li>
+                    <li>
+                      <a href="/terms/ESCRO">에스크로 서비스 이용약관</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="f_info">
+                <ul>
+                  <li class="ico2">
+                    <a href="mailto:task_pg@shinhan.com">task_pg@shinhan.com</a>
+                  </li>
+                </ul>
+              </div>
+              <p class="copyright">© SHINHAN BANK. All reserved.</p>
+            </div>
+            <div class="f_family">
+              <button type="button" class="btn">
+                <span>Family Site</span>
+              </button>
+              <div class="family_site_list">
+                <ul>
+                  <li>
+                    <a href="http://pg.shinhan.com" target="_blank"
+                      >신한은행 PG</a
+                    >
+                  </li>
+                  <li>
+                    <a href="https://clntadmspg.shinhan.com" target="_blank"
+                      >고객사 관리자 사이트</a
+                    >
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="el-dialog__wrapper" style="display: none">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Notification"
+          class="el-dialog episode-dialog-medium"
+          style="margin-top: 15vh"
+        >
+          <div class="el-dialog__header">
+            <span class="el-dialog__title">Notification</span
+            ><!---->
+          </div>
+          <!----><!---->
+        </div>
+      </div>
+      <section>
+        <div class="el-dialog__wrapper" style="display: none">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="제품 사용 신청"
+            class="el-dialog episode-dialog mypage-org-product-select-product"
+            style="margin-top: 15vh"
+          >
+            <div class="el-dialog__header">
+              <span class="el-dialog__title">제품 사용 신청</span
+              ><button
+                type="button"
+                aria-label="Close"
+                class="el-dialog__headerbtn"
+              >
+                <i class="el-dialog__close el-icon el-icon-close"></i>
+              </button>
+            </div>
+            <!----><!---->
+          </div>
+        </div>
+        <!---->
+      </section>
+    </div>
+  </body>
+  <script></script>
+</html>

@@ -1,0 +1,22 @@
+{
+  "colors": {
+    "editor.findMatchHighlight": "#cb606080",
+
+    "terminal.ansiBlack": "#666666",
+    "terminal.ansiBlue": "#399EF4",
+    "terminal.ansiBrightBlack": "#666666",
+    "terminal.ansiBrightBlue": "#399EF4",
+    "terminal.ansiBrightCyan": "#21C5C7",
+    "terminal.ansiBrightGreen": "#4EB071",
+    "terminal.ansiBrightMagenta": "#B168DF",
+    "terminal.ansiBrightRed": "#DA6771",
+    "terminal.ansiBrightWhite": "#efefef",
+    "terminal.ansiBrightYellow": "#fff099",
+    "terminal.ansiCyan": "#21C5C7",
+    "terminal.ansiGreen": "#4EB071",
+    "terminal.ansiMagenta": "#B168DF",
+    "terminal.ansiRed": "#DA6771",
+    "terminal.ansiWhite": "#efefef",
+    "terminal.ansiYellow": "#fff099"
+  }
+}
