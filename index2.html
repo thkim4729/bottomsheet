@@ -30,8 +30,6 @@
 
         padding: 10px;
         border: 2px solid #ddd;
-        width: 500px;
-        height: 250px;
       }
 
       li {
@@ -43,6 +41,52 @@
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      /* 스크롤 가능한 테이블 스타일 */
+      .table-container {
+        width: 100%;
+        max-height: 400px;
+        overflow: auto;
+        border: 2px solid #ddd;
+        margin-top: 30px;
+      }
+
+      .scrollable-table {
+        width: max-content;
+        min-width: 100%;
+        border-collapse: collapse;
+        font-family: sans-serif;
+      }
+
+      .scrollable-table th,
+      .scrollable-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border: 1px solid #ddd;
+        white-space: nowrap;
+        min-width: 100px;
+      }
+
+      .scrollable-table th {
+        background-color: #4a90e2;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .scrollable-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      .scrollable-table tbody tr:hover {
+        background-color: #e8f4f8;
+      }
+
+      .scrollable-table td {
+        background-color: white;
       }
     </style>
   </head>
@@ -70,5 +114,118 @@
       <li>19</li>
       <li>20</li>
     </ul>
+
+    <h3 style="margin-top: 30px">스크롤 가능한 테이블</h3>
+    <div class="table-container">
+      <table class="scrollable-table">
+        <thead>
+          <tr>
+            <th>이름</th>
+            <th>이메일</th>
+            <th>전화번호</th>
+            <th>주소</th>
+            <th>설명</th>
+            <th>추가 정보</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>홍길동</td>
+            <td>hong@example.com</td>
+            <td>010-1234-5678</td>
+            <td>서울특별시 강남구 테헤란로 123</td>
+            <td>
+              이것은 매우 긴 설명 텍스트입니다. 셀의 내용이 늘어나면 자동으로
+              가로 길이가 늘어납니다.
+            </td>
+            <td>추가 정보 1</td>
+          </tr>
+          <tr>
+            <td>김철수</td>
+            <td>kim@example.com</td>
+            <td>010-2345-6789</td>
+            <td>부산광역시 해운대구 해운대해변로 456</td>
+            <td>짧은 설명</td>
+            <td>추가 정보 2</td>
+          </tr>
+          <tr>
+            <td>이영희</td>
+            <td>lee@example.com</td>
+            <td>010-3456-7890</td>
+            <td>인천광역시 연수구 송도과학로 789</td>
+            <td>
+              이것은 또 다른 긴 설명입니다. 테이블이 가로 스크롤을 지원하므로
+              내용이 길어도 문제없습니다.
+            </td>
+            <td>추가 정보 3</td>
+          </tr>
+          <tr>
+            <td>박민수</td>
+            <td>park@example.com</td>
+            <td>010-4567-8901</td>
+            <td>대전광역시 유성구 대학로 321</td>
+            <td>중간 길이의 설명 텍스트</td>
+            <td>추가 정보 4</td>
+          </tr>
+          <tr>
+            <td>정수진</td>
+            <td>jung@example.com</td>
+            <td>010-5678-9012</td>
+            <td>광주광역시 남구 제봉로 654</td>
+            <td>
+              매우 매우 매우 긴 설명 텍스트입니다. 이 텍스트는 셀의 가로 길이를
+              자동으로 늘려서 모든 내용을 표시합니다.
+            </td>
+            <td>추가 정보 5</td>
+          </tr>
+          <tr>
+            <td>최동욱</td>
+            <td>choi@example.com</td>
+            <td>010-6789-0123</td>
+            <td>대구광역시 수성구 범어천로 987</td>
+            <td>설명</td>
+            <td>추가 정보 6</td>
+          </tr>
+          <tr>
+            <td>강미영</td>
+            <td>kang@example.com</td>
+            <td>010-7890-1234</td>
+            <td>울산광역시 남구 삼산로 147</td>
+            <td>
+              긴 설명 텍스트 예시입니다. 셀의 내용에 따라 자동으로 너비가
+              조정됩니다.
+            </td>
+            <td>추가 정보 7</td>
+          </tr>
+          <tr>
+            <td>윤태호</td>
+            <td>yoon@example.com</td>
+            <td>010-8901-2345</td>
+            <td>세종특별자치시 조치원읍 세종로 258</td>
+            <td>짧은 텍스트</td>
+            <td>추가 정보 8</td>
+          </tr>
+          <tr>
+            <td>임지은</td>
+            <td>lim@example.com</td>
+            <td>010-9012-3456</td>
+            <td>경기도 수원시 영통구 월드컵로 369</td>
+            <td>
+              이것은 매우 긴 설명입니다. 테이블의 가로 스크롤 기능 덕분에 긴
+              내용도 문제없이 표시됩니다.
+            </td>
+            <td>추가 정보 9</td>
+          </tr>
+          <tr>
+            <td>한동훈</td>
+            <td>han@example.com</td>
+            <td>010-0123-4567</td>
+            <td>경상남도 창원시 의창구 중앙대로 741</td>
+            <td>설명 텍스트</td>
+            <td>추가 정보 10</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </body>
 </html>
