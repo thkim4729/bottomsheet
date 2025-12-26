@@ -1,11 +1,3 @@
-/* Navigator styles (cleaned)
-   - Right fixed panel: width 320px, background #FBFBFB
-   - Panel background fills full viewport; inner content sits below header
-   - depth1--item: full-width buttons with #F1F1F1 background
-   - depth2--item: block items with a left vertical bar (::before) that becomes visible
-     when the item has .active-nav-item or is focused
-*/
-
 .dynamic-navigator {
   position: fixed;
   right: 0;

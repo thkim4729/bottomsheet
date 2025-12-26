@@ -124,6 +124,10 @@ document.addEventListener("DOMContentLoaded", function () {
           });
           clickedButton.classList.add("active-nav-item");
           clickedButton.setAttribute("aria-current", "true");
+          // if a depth2 item was clicked, also activate its parent depth1
+          try {
+            setParentActiveForDepth2(clickedButton);
+          } catch (e) {}
 
           const targetId = clickedButton.dataset.target;
           const targetElement = document.querySelector(
@@ -190,6 +194,21 @@ document.addEventListener("DOMContentLoaded", function () {
       };
     }
 
+    // When a depth2 item is active, also mark its parent depth1 button active.
+    function setParentActiveForDepth2(itemButton) {
+      if (!itemButton) return;
+      if (!itemButton.classList.contains("depth2--item")) return;
+      // find the depth1 li that contains this depth2 list
+      const depth2Ul = itemButton.closest("ul.depth2");
+      if (!depth2Ul) return;
+      const depth1Li = depth2Ul.closest("li");
+      if (!depth1Li) return;
+      const parentDepth1Button = depth1Li.querySelector(".depth1--item");
+      if (!parentDepth1Button) return;
+      parentDepth1Button.classList.add("active-nav-item");
+      parentDepth1Button.setAttribute("aria-current", "true");
+    }
+
     // 스크롤 위치에 따라 활성 네비게이션 버튼을 업데이트하는 함수
     function updateActiveNavItem() {
       const headerHeight =
@@ -222,6 +241,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (lastNavButton) {
           lastNavButton.classList.add("active-nav-item");
           lastNavButton.setAttribute("aria-current", "true"); // aria-current 속성 추가
+          try {
+            setParentActiveForDepth2(lastNavButton);
+          } catch (e) {}
         }
         return;
       }
@@ -246,6 +268,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (activeNavButton) {
           activeNavButton.classList.add("active-nav-item");
           activeNavButton.setAttribute("aria-current", "true"); // aria-current 속성 추가
+          try {
+            setParentActiveForDepth2(activeNavButton);
+          } catch (e) {}
         }
       }
     }
