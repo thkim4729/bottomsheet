@@ -7,78 +7,8 @@
     <link rel="stylesheet" href="/reset.css" />
     <link rel="stylesheet" href="/test1.css" />
     <script src="/scroll.js"></script>
+    <link rel="stylesheet" href="/new.css" />
   </head>
-  <style>
-    .section_nav {
-      height: 100vh;
-    }
-    .section_nav.one {
-      background: palegoldenrod;
-    }
-    .section_nav.two {
-      background: palegreen;
-    }
-    .section_nav.three {
-      background: peachpuff;
-    }
-    .section_nav.four {
-      background: powderblue;
-    }
-    .section_nav.five {
-      background: pink;
-    }
-    .section_nav.six {
-      background: skyblue;
-    }
-    .section_nav__list {
-      position: fixed;
-      left: 100px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-    .section_nav__button {
-      display: block;
-      border: 1px solid #ddd;
-      background: #fff;
-      width: 50px;
-      height: 50px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .section_nav__button.active {
-      background: #999 !important;
-    }
-    .section_nav__button:hover {
-      background: #eee;
-    }
-
-    .navigator {
-      position: fixed;
-      right: 40px;
-      top: 200px;
-    }
-    .navigator .depth1 > li ~ li {
-      margin-top: 12px;
-    }
-    .navigator .depth1 > li > button {
-      font-size: 16px;
-    }
-    .navigator .depth2 {
-      margin-top: 12px;
-      text-indent: 24px;
-    }
-    .navigator .depth2 > li ~ li {
-      margin-top: 8px;
-    }
-    .navigator .active-nav-item {
-      color: #0046ff;
-      font-weight: bold;
-    }
-    .navigator .depth1--item:not(.active-nav-item):hover,
-    .navigator .depth2--item:not(.active-nav-item):hover {
-      color: dodgerblue; /* 마우스오버 시 옅은 파란색으로 변경 */
-    }
-  </style>
   <body>
     <div id="app" class="wrap">
       <div>
@@ -1655,13 +1585,15 @@ private void getResultPage(Uri resultUri) {
                 ></iframe>
               </div>
             </div>
-            <nav
-              id="dynamic-navigator"
-              class="navigator"
-              aria-label="메인 탐색"
-            >
-              <!-- 본문에 h1_title과 h2_title이 생성될 때, 이곳에 동적으로 리스트가 생성됩니다. -->
-            </nav>
+            <div class="dynamic-navigator-wrap">
+              <nav
+                id="dynamic-navigator"
+                class="dynamic-navigator"
+                aria-label="메인 탐색"
+              >
+                <!-- 본문에 h1_title과 h2_title이 생성될 때, 이곳에 동적으로 리스트가 생성됩니다. -->
+              </nav>
+            </div>
           </div>
         </div>
       </section>

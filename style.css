@@ -211,3 +211,6 @@ bottom-sheet[aria-hidden="true"] {
     )
     content-box;
 }
+
+/* Accessibility: navigator focus and active styles */
+/* Navigator styles moved to new.css to avoid duplication */

@@ -23,100 +23,17 @@ document.addEventListener("DOMContentLoaded", function () {
       }, 0);
     }
 
-    // 필요한 요소들을 미리 선택해 변수에 저장합니다.
-    const navButtons = document.querySelectorAll(".section_nav__button");
-    const navItems = document.querySelectorAll(".section_nav__item");
-    // '.section_nav'는 스크롤 대상이 되는 섹션을 의미하는 것으로 보입니다.
-    // 만약 다른 클래스라면 해당 클래스로 변경해주세요.
-    const sections = document.querySelectorAll(".section_nav");
-
-    /**
-     * 스크롤 이벤트 핸들러
-     * 스크롤 위치에 따라 해당하는 네비게이션 버튼에 'active' 클래스를 추가합니다.
-     */
-    window.addEventListener("scroll", function () {
-      const windowPosition = document.documentElement.scrollTop; // window.scrollY 대신 document.documentElement.scrollTop 사용
-
-      // 모든 섹션을 순회하며 현재 스크롤 위치와 비교합니다.
-      sections.forEach((section, i) => {
-        // 섹션의 문서 전체에서의 상단 위치를 계산합니다.
-        const sectionTop = section.offsetTop;
-
-        // 스크롤 위치가 섹션의 상단 위치보다 크거나 같으면 해당 네비게이션을 활성화합니다.
-        // -2는 약간의 오차를 보정하기 위한 값으로 보입니다.
-        if (windowPosition >= sectionTop - 2) {
-          // 먼저 모든 버튼에서 'active' 클래스를 제거합니다.
-          navButtons.forEach((btn) => btn.classList.remove("active"));
-          // 현재 섹션에 해당하는 버튼에만 'active' 클래스를 추가합니다.
-          navButtons[i].classList.add("active");
-        }
-      });
-    });
-
-    /**
-     * 네비게이션 버튼 클릭 이벤트 핸들러
-     * 클릭된 버튼에 해당하는 섹션으로 부드럽게 스크롤하고, 해당 버튼을 활성화합니다.
-     */
-    navButtons.forEach((button, idx) => {
-      button.addEventListener("click", function (event) {
-        // a 태그 등의 기본 동작을 막습니다. (필요한 경우)
-        event.preventDefault();
-
-        // 클릭된 버튼에 해당하는 섹션의 상단 위치를 가져옵니다.
-        const sectionTop = sections[idx].offsetTop;
-
-        // 먼저 모든 버튼에서 'active' 클래스를 제거합니다.
-        // navButtons.forEach((btn) => btn.classList.remove("active"));
-        // 클릭된 버튼에 'active' 클래스를 추가합니다.
-        // this.classList.add("active");
-
-        // 해당 섹션으로 부드럽게 스크롤 이동합니다.
-        window.scrollTo({
-          top: sectionTop,
-          behavior: "smooth",
-        });
-      });
-    });
+    // 기존의 단순한 네비게이션 핸들러(중복되거나 사용되지 않음)는 제거했습니다.
 
     // navigation-related sections.
     // 현재 스크롤 위치를 추적하고, 해당 위치에 따라 네비게이션 버튼의 활성 상태를 업데이트합니다.
-
-    // navigator 내의 depth1--item 버튼 클릭 이벤트 핸들러
-    // const depth1Buttons = document.querySelectorAll(".navigator .depth1--item");
-    // depth1Buttons.forEach((button) => {
-    //   button.addEventListener("click", function () {
-    //     const targetId = this.dataset.target;
-    //     const targetElement = document.getElementById(targetId);
-
-    //     if (targetElement) {
-    //       window.scrollTo({
-    //         top: targetElement.offsetTop,
-    //         behavior: "smooth",
-    //       });
-    //     }
-    //   });
-    // });
-
-    // navigator 내의 depth2--item 버튼 클릭 이벤트 핸들러
-    // const depth2Buttons = document.querySelectorAll(".navigator .depth2--item");
-    // depth2Buttons.forEach((button) => {
-    //   button.addEventListener("click", function () {
-    //     const targetId = this.dataset.target;
-    //     const targetElement = document.getElementById(targetId);
-
-    //     if (targetElement) {
-    //       window.scrollTo({
-    //         top: targetElement.offsetTop,
-    //         behavior: "smooth",
-    //       });
-    //     }
-    //   });
-    // });
 
     // 동적으로 ID를 부여하고 data-target 속성을 설정하며 navigator를 생성하는 함수
     function buildDynamicNavigator() {
       const dynamicNavigator = document.getElementById("dynamic-navigator");
       if (!dynamicNavigator) return;
+      // add class so CSS can use class selectors instead of IDs
+      dynamicNavigator.classList.add("dynamic-navigator");
 
       const depth1Ul = document.createElement("ul");
       depth1Ul.classList.add("depth1");
@@ -125,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       h1Titles.forEach((h1, h1Index) => {
         const h1Id = `h1-title-${h1Index + 1}`;
-        h1.dataset.sectionId = h1Id; // id 대신 data-section-id 사용
+        h1.dataset.sectionId = h1Id; // data-section-id로 참조
         h1.tabIndex = -1; // h1 요소에 tabindex="-1" 추가
 
         const depth1Li = document.createElement("li");
@@ -157,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         h2ElementsForCurrentH1.forEach((h2, h2Index) => {
           const h2Id = `h2-title-${h1Index + 1}-${h2Index + 1}`;
-          h2.dataset.sectionId = h2Id; // id 대신 data-section-id 사용
+          h2.dataset.sectionId = h2Id; // data-section-id로 참조
           h2.tabIndex = -1; // h2 요소에 tabindex="-1" 추가
 
           const depth2Li = document.createElement("li");
@@ -176,7 +93,20 @@ document.addEventListener("DOMContentLoaded", function () {
         depth1Ul.appendChild(depth1Li);
       });
 
-      dynamicNavigator.appendChild(depth1Ul);
+      // wrap content in inner container so panel background can fill full height
+      const inner = document.createElement("div");
+      inner.classList.add("dynamic-navigator__inner");
+      inner.appendChild(depth1Ul);
+      dynamicNavigator.appendChild(inner);
+      // attach scrollbar visibility handler: show thin scrollbar only while scrolling
+      try {
+        attachScrollbarVisibilityHandler(inner);
+      } catch (e) {
+        // non-fatal
+      }
+      // 접근성: 내비게이션 역할과 레이블 추가
+      dynamicNavigator.setAttribute("role", "navigation");
+      dynamicNavigator.setAttribute("aria-label", "문서 목차");
 
       // 이벤트 위임을 사용하여 클릭 이벤트 처리
       dynamicNavigator.addEventListener("click", function (event) {
@@ -184,6 +114,17 @@ document.addEventListener("DOMContentLoaded", function () {
           ".depth1--item, .depth2--item"
         );
         if (clickedButton) {
+          // 클릭 즉시 네비게이션 상태 업데이트 (스크린리더에 즉시 알림)
+          const navButtonsNow = dynamicNavigator.querySelectorAll(
+            ".depth1--item, .depth2--item"
+          );
+          navButtonsNow.forEach((btn) => {
+            btn.classList.remove("active-nav-item");
+            btn.removeAttribute("aria-current");
+          });
+          clickedButton.classList.add("active-nav-item");
+          clickedButton.setAttribute("aria-current", "true");
+
           const targetId = clickedButton.dataset.target;
           const targetElement = document.querySelector(
             `[data-section-id="${targetId}"]`
@@ -197,13 +138,18 @@ document.addEventListener("DOMContentLoaded", function () {
               top: targetY,
               behavior: "smooth",
             });
-            // 스크롤 완료 후 포커스 이동을 위해 새로운 디바운스 메커니즘 사용
+            // 스크롤 완료 후 포커스 이동: focus 시 불필요한 스크롤을 방지
             let scrollEndTimer;
             const onScrollEnd = () => {
               clearTimeout(scrollEndTimer);
               scrollEndTimer = setTimeout(() => {
                 if (targetElement) {
-                  targetElement.focus();
+                  try {
+                    targetElement.focus({ preventScroll: true });
+                  } catch (e) {
+                    // 일부 브라우저는 옵션을 지원하지 않을 수 있으므로 폴백
+                    targetElement.focus();
+                  }
                 }
                 window.removeEventListener("scroll", onScrollEnd);
               }, 100); // 스크롤이 100ms 동안 멈추면 완료된 것으로 간주
@@ -214,33 +160,35 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    // Helper function to wait for scroll to end and then focus
-    // function waitForScrollEndAndFocus(targetElement, scrollYTarget) {
-    //   let lastScrollY = document.documentElement.scrollTop;
-    //   let scrollAnimationId = null; // requestAnimationFrame ID
-
-    //   const checkScroll = () => {
-    //     const currentScrollY = document.documentElement.scrollTop;
-
-    //     // 스크롤 위치가 변경되지 않았거나 목표 위치에 충분히 가까워지면
-    //     if (
-    //       currentScrollY === lastScrollY ||
-    //       Math.abs(currentScrollY - scrollYTarget) < 2
-    //     ) {
-    //       // 2px 허용 오차
-    //       if (targetElement) {
-    //         targetElement.focus();
-    //       }
-    //       cancelAnimationFrame(scrollAnimationId); // 애니메이션 루프 중지
-    //       return;
-    //     }
-
-    //     lastScrollY = currentScrollY;
-    //     scrollAnimationId = requestAnimationFrame(checkScroll); // 다음 프레임에 다시 확인
-    //   };
-
-    //   scrollAnimationId = requestAnimationFrame(checkScroll); // 스크롤 확인 시작
-    // }
+    // Attach a scroll handler to show a thin scrollbar while the user scrolls.
+    function attachScrollbarVisibilityHandler(innerEl) {
+      if (!innerEl) return;
+      const showClass = "show-scrollbar";
+      let timer = null;
+      const onScroll = () => {
+        innerEl.classList.add(showClass);
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          innerEl.classList.remove(showClass);
+          timer = null;
+        }, 600);
+      };
+      innerEl.addEventListener("scroll", onScroll, { passive: true });
+      // store cleanup helper on element
+      innerEl.__removeScrollbarHandler = function () {
+        try {
+          innerEl.removeEventListener("scroll", onScroll);
+        } catch (e) {}
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        innerEl.classList.remove(showClass);
+        try {
+          delete innerEl.__removeScrollbarHandler;
+        } catch (e) {}
+      };
+    }
 
     // 스크롤 위치에 따라 활성 네비게이션 버튼을 업데이트하는 함수
     function updateActiveNavItem() {
@@ -252,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
       let currentActiveId = null;
 
       const allNavButtons = document.querySelectorAll(
-        "#dynamic-navigator .depth1--item, #dynamic-navigator .depth2--item"
+        ".dynamic-navigator .depth1--item, .dynamic-navigator .depth2--item"
       );
 
       // 모든 h1_title 및 h2_title 요소를 가져옵니다.
@@ -273,7 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const lastNavButton = allNavButtons[allNavButtons.length - 1];
         if (lastNavButton) {
           lastNavButton.classList.add("active-nav-item");
-          lastNavButton.setAttribute("aria-current", "page"); // aria-current 속성 추가
+          lastNavButton.setAttribute("aria-current", "true"); // aria-current 속성 추가
         }
         return;
       }
@@ -297,17 +245,99 @@ document.addEventListener("DOMContentLoaded", function () {
         );
         if (activeNavButton) {
           activeNavButton.classList.add("active-nav-item");
-          activeNavButton.setAttribute("aria-current", "page"); // aria-current 속성 추가
+          activeNavButton.setAttribute("aria-current", "true"); // aria-current 속성 추가
         }
       }
     }
 
     buildDynamicNavigator(); // 페이지 로드 시 동적 네비게이터 생성 함수 실행
-
     // 스크롤 이벤트 리스너 추가
     window.addEventListener("scroll", updateActiveNavItem);
     // 페이지 로드 시 한 번 실행하여 초기 상태 설정
     updateActiveNavItem();
+
+    // Dynamic positioning: set inner container top = headerHeight + 80px
+    function updateDynamicNavigatorPosition() {
+      const dynamicNavigator = document.getElementById("dynamic-navigator");
+      if (!dynamicNavigator) return;
+      const headerDev = document.getElementById("headerDev");
+      const headerHeight = headerDev ? headerDev.offsetHeight : 0;
+      const topOffset = headerHeight + 80; // user requested offset
+
+      // apply inline styles to inner container so the panel background can remain full-height
+      const innerEl = dynamicNavigator.querySelector(
+        ".dynamic-navigator__inner"
+      );
+      const targetEl = innerEl || dynamicNavigator;
+      if (!targetEl.style.transition) {
+        targetEl.style.transition = "top 240ms ease, height 240ms ease";
+      }
+      targetEl.style.top = topOffset + "px";
+      // set height so it fits remaining viewport below the offset
+      const remaining = window.innerHeight - topOffset;
+      targetEl.style.height = (remaining > 0 ? remaining : 0) + "px";
+    }
+
+    // observe header size changes in real-time
+    const headerElement = document.getElementById("headerDev");
+    if (headerElement && window.ResizeObserver) {
+      const ro = new ResizeObserver(() => {
+        updateDynamicNavigatorPosition();
+      });
+      ro.observe(headerElement);
+      // store observer on element for potential cleanup (not strictly necessary here)
+      headerElement.__dynamicNavResizeObserver = ro;
+    } else if (headerElement) {
+      // fallback to mutation observer if ResizeObserver not supported
+      const mo = new MutationObserver(() => updateDynamicNavigatorPosition());
+      mo.observe(headerElement, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+      headerElement.__dynamicNavMutationObserver = mo;
+    }
+
+    // update on window resize as well
+    window.addEventListener("resize", updateDynamicNavigatorPosition);
+    // initial call
+    updateDynamicNavigatorPosition();
+    // cleanup observers and listeners on unload to avoid leaks
+    function cleanupDynamicNavigator() {
+      if (headerElement) {
+        if (headerElement.__dynamicNavResizeObserver) {
+          try {
+            headerElement.__dynamicNavResizeObserver.disconnect();
+          } catch (e) {}
+          delete headerElement.__dynamicNavResizeObserver;
+        }
+        if (headerElement.__dynamicNavMutationObserver) {
+          try {
+            headerElement.__dynamicNavMutationObserver.disconnect();
+          } catch (e) {}
+          delete headerElement.__dynamicNavMutationObserver;
+        }
+      }
+      // remove scrollbar handler on inner navigator if present
+      try {
+        const dynNav = document.getElementById("dynamic-navigator");
+        if (dynNav) {
+          const innerEl = dynNav.querySelector(".dynamic-navigator__inner");
+          if (
+            innerEl &&
+            typeof innerEl.__removeScrollbarHandler === "function"
+          ) {
+            try {
+              innerEl.__removeScrollbarHandler();
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
+      window.removeEventListener("resize", updateDynamicNavigatorPosition);
+      window.removeEventListener("scroll", updateActiveNavItem);
+      window.removeEventListener("beforeunload", cleanupDynamicNavigator);
+    }
+    window.addEventListener("beforeunload", cleanupDynamicNavigator);
   }
   initializeDynamicNavigator();
 });
