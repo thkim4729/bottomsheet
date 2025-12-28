@@ -277,6 +277,7 @@ function dynamicNavigator(options = {}) {
     // 스크롤 대상 (기본값: 버튼 자신)
     let elementToScroll = targetBtn;
 
+    // CASE 1: Depth 2 (서브 메뉴)가 타겟인 경우
     if (targetBtn.classList.contains("depth2--item")) {
       const parentLi = targetBtn.closest("li");
       const parentUl = parentLi.closest("ul.depth2");
@@ -284,12 +285,12 @@ function dynamicNavigator(options = {}) {
         const grandParentLi = parentUl.closest("li");
         const depth1Btn = grandParentLi?.querySelector(".depth1--item");
 
-        // 상위 Depth1 버튼도 활성화
+        // 부모 Depth 1도 같이 활성화
         if (depth1Btn) {
           depth1Btn.classList.add(CONFIG.classes.active);
         }
 
-        // 마커 이동
+        // 마커를 현재 타겟(Depth 2) 위치로 이동
         const marker = parentUl.querySelector(".nav-marker");
         if (marker) {
           const topPos = parentLi.offsetTop;
@@ -299,18 +300,45 @@ function dynamicNavigator(options = {}) {
           marker.style.opacity = "1";
         }
 
-        // ★ [변경] Depth 2일 경우, 그룹 전체(Depth 1 Li)가 보이도록 스크롤
+        // 스크롤 시 상위 그룹 전체가 보이도록 설정
         if (grandParentLi) {
           elementToScroll = grandParentLi;
         }
       }
-    } else {
-      // Depth 1일 경우 Li 단위로 스크롤 (여백 확보 유리)
-      const li = targetBtn.closest("li");
-      if (li) elementToScroll = li;
+    }
+    // CASE 2: Depth 1 (메인 메뉴)이 타겟인 경우 -> ★ [추가된 로직]
+    else {
+      const currentLi = targetBtn.closest("li");
+
+      // 하위 메뉴(Depth 2)가 있는지 확인
+      const childUl = currentLi.querySelector("ul.depth2");
+      if (childUl) {
+        // 첫 번째 자식 버튼 찾기
+        const firstChildBtn = childUl.querySelector(".depth2--item");
+
+        if (firstChildBtn) {
+          // 첫 번째 자식도 활성화 (색상 변경)
+          firstChildBtn.classList.add(CONFIG.classes.active);
+
+          // ★ 마커를 첫 번째 자식 위치로 이동
+          const marker = childUl.querySelector(".nav-marker");
+          const firstChildLi = firstChildBtn.closest("li");
+
+          if (marker && firstChildLi) {
+            const topPos = firstChildLi.offsetTop;
+            const height = firstChildLi.offsetHeight;
+            marker.style.top = `${topPos}px`;
+            marker.style.height = `${height}px`;
+            marker.style.opacity = "1";
+          }
+        }
+      }
+
+      // Depth 1은 Li 단위로 스크롤 (여백 확보)
+      if (currentLi) elementToScroll = currentLi;
     }
 
-    // 해당 요소가 보이도록 자동 스크롤
+    // 화면 자동 스크롤
     elementToScroll.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
