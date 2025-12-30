@@ -161,13 +161,16 @@
 /* [B] Navigator: 스크롤 영역 (Nav 태그) */
 .navigator {
   flex: 1 1 auto; /* 남은 높이 모두 차지 */
-  overflow-y: auto; /* 내부 스크롤 발생 */
   position: relative;
   width: 100%;
+
+  /* [핵심 수정 1] 스크롤바를 공간 차지 없이 콘텐츠 위에 띄움 (WebKit 전용) */
+  overflow: overlay;
+
   padding: 0 0 24px 0; /* 하단 여백 */
   box-sizing: border-box;
 
-  /* 스크롤바 디자인 (Firefox) */
+  /* 스크롤바 디자인 (Firefox) - Firefox는 overlay 미지원이므로 얇게 처리 */
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.3s;
@@ -175,24 +178,36 @@
 
 /* 스크롤바 커스텀 (Webkit: Chrome, Edge, Safari) */
 .navigator::-webkit-scrollbar {
-  width: 6px;
-  background-color: transparent;
+  /* [핵심 수정 2] position: absolute 제거 (적용 안됨) & 너비 설정 */
+  width: 6px; /* 너무 얇으면 클릭이 힘드므로 6px 권장 */
+  background-color: transparent; /* 트랙 배경 투명 */
 }
+
+.navigator::-webkit-scrollbar-track {
+  background-color: transparent; /* 트랙 배경 확실하게 투명 처리 */
+}
+
 .navigator::-webkit-scrollbar-thumb {
   background-color: transparent;
   border-radius: 3px;
+  /* 스크롤바가 콘텐츠 위에 떴을 때 잘 보이도록 약간의 여백 효과 */
+  background-clip: padding-box;
+  border: 1px solid transparent;
 }
 
 /* 스크롤 시에만 스크롤바 보이기 (.show-scrollbar 클래스) */
 .navigator.show-scrollbar {
+  /* Firefox */
   scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
+
 .navigator.show-scrollbar::-webkit-scrollbar-thumb {
+  /* Chrome, Edge, Safari */
   background-color: rgba(0, 0, 0, 0.3);
 }
 
 /* =========================================
-   4. 리스트 및 버튼 스타일 (Multi-line 지원)
+  4. 리스트 및 버튼 스타일 (Multi-line 지원)
    ========================================= */
 .navigator ul {
   list-style: none;
@@ -246,7 +261,7 @@
 .navigator .depth2 {
   position: relative;
   padding-left: 28px;
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
 }
 
 /* 왼쪽 회색 라인 (가이드선) */
