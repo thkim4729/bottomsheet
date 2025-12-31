@@ -1592,6 +1592,76 @@ private void getResultPage(Uri resultUri) {
                                 </pre
                       >
                     </div>
+                    <div class="pre_area">
+                      <pre>
+// ISP 앱의 콜백(Callback)을 전달받기 위한 앱 스키마
+private final String APP_SCHEME_URL = "spgapptest://";
+// ISP 앱에서 취소 선택 시 URI
+private final String APP_SCHEME_CANCEL_URL = APP_SCHEME_URL + "ISPCancel/";
+// ISP 앱에서 인증 성공 시 URI
+private final String APP_SCHEME_SUCCESS_URL = APP_SCHEME_URL + "ISPSuccess/";
+… …
+/*
+* ISP로부터 전달받은 URI에 따라 결제 최종 확인 또는 결제 요청 이전의 페이지를 표시합니다.
+* @param resultUrl ISP로부터 전달받은 URI
+*/
+private void getResultPage(Uri resultUri) {
+    String schemaUrl = resultUri.toString();
+    String urlString = null;
+
+    if(schemaUrl.startsWith(APP_SCHEMA_SUCCESS_URI)){ //ISP 인증을 성공한 경우
+        if(MainActivity.mContext != null){
+            (Activity) MainActivity.mContext).finish();
+        }
+        urlString = schemaUrl.substring(APP_SCHEMA_SUCCESS_URI.length());
+        mWvCardResultView.loadUrl(urlString);
+    }else if(schemaUrl.startsWith(APP_SCHEMA_CANCEL_URI)){ //ISP앱에서 취소를 선택한 경우
+        if(MainActivity.mContext != null){
+            ((Activity) MainActivity.mContext).finish();
+        }
+        urlString = schemaUrl.substring(APP_SCHEMA_CANCEL_URI.length());
+        mWvCardResultView.loadUrl(urlString);
+    }
+}
+
+                                </pre
+                      >
+                    </div>
+                    <div class="pre_area">
+                      <pre>
+// ISP 앱의 콜백(Callback)을 전달받기 위한 앱 스키마
+private final String APP_SCHEME_URL = "spgapptest://";
+// ISP 앱에서 취소 선택 시 URI
+private final String APP_SCHEME_CANCEL_URL = APP_SCHEME_URL + "ISPCancel/";
+// ISP 앱에서 인증 성공 시 URI
+private final String APP_SCHEME_SUCCESS_URL = APP_SCHEME_URL + "ISPSuccess/";
+… …
+/*
+* ISP로부터 전달받은 URI에 따라 결제 최종 확인 또는 결제 요청 이전의 페이지를 표시합니다.
+* @param resultUrl ISP로부터 전달받은 URI
+*/
+private void getResultPage(Uri resultUri) {
+    String schemaUrl = resultUri.toString();
+    String urlString = null;
+
+    if(schemaUrl.startsWith(APP_SCHEMA_SUCCESS_URI)){ //ISP 인증을 성공한 경우
+        if(MainActivity.mContext != null){
+            (Activity) MainActivity.mContext).finish();
+        }
+        urlString = schemaUrl.substring(APP_SCHEMA_SUCCESS_URI.length());
+        mWvCardResultView.loadUrl(urlString);
+    }else if(schemaUrl.startsWith(APP_SCHEMA_CANCEL_URI)){ //ISP앱에서 취소를 선택한 경우
+        if(MainActivity.mContext != null){
+            ((Activity) MainActivity.mContext).finish();
+        }
+        urlString = schemaUrl.substring(APP_SCHEMA_CANCEL_URI.length());
+        mWvCardResultView.loadUrl(urlString);
+    }
+}
+
+                                </pre
+                      >
+                    </div>
                   </div>
                   <!--// guide_cont_box -->
                 </div>
