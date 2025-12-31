@@ -1,26 +1,28 @@
+/* =================================================================
+   1. 페이지 레이아웃 (Page Layout)
+   ================================================================= */
+
+/* 본문 영역 기본 여백 */
 .content .inner {
   padding: 0 160px 0 0;
-  transition: all 0.3s;
 }
 
+/* 해상도별 본문 패딩 반응형 처리 */
 @media screen and (max-width: 1800px) {
   .content .inner {
     padding: 0 240px 0 0;
   }
 }
-
 @media screen and (max-width: 1700px) {
   .content .inner {
     padding: 0 320px 0 0;
   }
 }
-
 @media screen and (max-width: 1600px) {
   .content .inner {
     padding: 0;
   }
 }
-
 @media screen and (max-width: 1280px) {
   .content .inner {
     max-width: initial;
@@ -28,11 +30,11 @@
   }
 }
 
+/* 데모용 상단 구분선 */
 .dev_top_area {
   position: relative;
   margin-bottom: 16px;
 }
-
 .dev_top_area:after {
   content: "";
   display: block;
@@ -43,11 +45,11 @@
   background: #000;
 }
 
-/* =========================================
-  2. Dynamic Navigator 구조 (4단 레이아웃)
-   ========================================= */
+/* =================================================================
+   2. 내비게이터 골격 (Navigator Structure)
+   ================================================================= */
 
-/* [1] Wrap: 화면 우측 고정 레일 (클릭 통과) */
+/* [1] Wrapper: 화면 우측 고정 (이벤트 통과) */
 .navigator-wrap {
   position: fixed;
   right: 0;
@@ -56,14 +58,11 @@
   width: 320px;
   z-index: 100;
 
-  /* 빈 공간 클릭 시 본문이 선택되도록 이벤트 통과 */
-  pointer-events: none;
-
-  /* 박스 모델 안전 장치 */
+  pointer-events: none; /* 빈 공간 클릭 통과 */
   box-sizing: border-box;
 }
 
-/* [2] Area: 배경색 박스 */
+/* [2] Area: 배경 및 위치 제어 (이벤트 받음) */
 .navigator-area {
   position: absolute;
   left: 0;
@@ -71,23 +70,20 @@
   top: 0;
   bottom: 0;
 
-  /* [수정]
-      1. 위쪽(0%)부터 하단 60px 지점까지는 #fbfbfb (꽉 찬 회색)
-      2. 하단 끝(100%)으로 갈수록 투명해짐
-    */
+  pointer-events: auto; /* 클릭 활성화 */
+  will-change: top, bottom; /* 성능 최적화 */
+  box-sizing: border-box;
+
+  /* 배경: 상단(회색) -> 하단(투명 그라데이션) */
   background: linear-gradient(
     to bottom,
     #fbfbfb 0%,
     #fbfbfb calc(100% - 60px),
     rgba(251, 251, 251, 0) 100%
   );
-
-  pointer-events: auto;
-  will-change: top, bottom;
-  box-sizing: border-box;
 }
 
-/* [3] Inner: 내부 레이아웃 */
+/* [3] Inner: 내부 콘텐츠 레이아웃 */
 .navigator-inner {
   position: relative;
   width: 100%;
@@ -96,29 +92,24 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-
-  /* [중요] 부드러운 패딩 변화를 위해 transition 추가 (선택사항) */
   transition: padding-top 0.3s;
 }
 
-/* =========================================
-  3. 내부 컴포넌트 (Breadcrumb & Nav)
-   ========================================= */
+/* =================================================================
+   3. 브레드크럼 (Breadcrumb)
+   ================================================================= */
 
-/* [A] Breadcrumb: 상단 고정 영역 (Nav 태그) */
 .navigator-breadcrumb {
-  flex: 0 0 auto;
-
-  /* 전체 컨테이너도 Flex로 설정하여 내부 요소 제어 용이 */
+  flex: 0 0 auto; /* 높이 고정 */
   padding: 24px 28px 10px 28px;
   min-height: 50px;
   box-sizing: border-box;
 
+  /* 폰트 스타일 */
   color: #333;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui,
     Roboto, sans-serif;
   font-size: 15px;
-  font-style: normal;
   font-weight: 500;
   line-height: 1.13;
   letter-spacing: -0.075px;
@@ -127,20 +118,15 @@
   overflow: hidden;
 }
 
-/* OL 태그: Flex 컨테이너 */
 .navigator-breadcrumb ol {
-  /* [핵심] float: left 대신 display: flex 사용 */
   display: flex;
-  align-items: center; /* 수직 중앙 정렬 */
-
+  align-items: center;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-/* 개별 아이템 (LI 태그): Inline Flex 컨테이너 */
 .breadcrumb-item {
-  /* [핵심] li가 옆으로 흐르면서도 내부 정렬을 유지하기 위해 inline-flex 사용 */
   display: inline-flex;
   align-items: center;
 }
@@ -148,123 +134,124 @@
 /* 구분자 (>) */
 .breadcrumb-item + .breadcrumb-item::before {
   content: ">";
-  margin: 0px;
-
-  /* 폰트 스타일 상속 */
+  margin: 0;
   color: inherit;
   font-weight: inherit;
-
-  /* 스크린 리더 무시 */
   speak: none;
 }
 
-/* [B] Navigator: 스크롤 영역 (Nav 태그) */
+/* =================================================================
+   4. 스크롤 영역 (Scroll Container)
+   ================================================================= */
+
 .navigator {
-  flex: 1 1 auto; /* 남은 높이 모두 차지 */
+  flex: 1 1 auto; /* 남은 공간 모두 차지 */
   position: relative;
   width: 100%;
-
-  /* [핵심 수정 1] 스크롤바를 공간 차지 없이 콘텐츠 위에 띄움 (WebKit 전용) */
-  overflow: overlay;
-
-  padding: 0 0 24px 0; /* 하단 여백 */
+  padding: 0 0 24px 0;
   box-sizing: border-box;
 
-  /* 스크롤바 디자인 (Firefox) - Firefox는 overlay 미지원이므로 얇게 처리 */
+  /* [WebKit] 스크롤바 오버레이 처리 (공간 차지 X) */
+  overflow-y: overlay;
+
+  /* [Firefox] 스크롤바 스타일 */
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.3s;
 }
 
-/* 스크롤바 커스텀 (Webkit: Chrome, Edge, Safari) */
+/* --- WebKit Scrollbar Custom --- */
 .navigator::-webkit-scrollbar {
-  /* [핵심 수정 2] position: absolute 제거 (적용 안됨) & 너비 설정 */
-  width: 6px; /* 너무 얇으면 클릭이 힘드므로 6px 권장 */
-  background-color: transparent; /* 트랙 배경 투명 */
+  width: 6px;
+  background-color: transparent;
 }
-
 .navigator::-webkit-scrollbar-track {
-  background-color: transparent; /* 트랙 배경 확실하게 투명 처리 */
+  background-color: transparent;
 }
-
 .navigator::-webkit-scrollbar-thumb {
   background-color: transparent;
   border-radius: 3px;
-  /* 스크롤바가 콘텐츠 위에 떴을 때 잘 보이도록 약간의 여백 효과 */
   background-clip: padding-box;
   border: 1px solid transparent;
 }
 
-/* 스크롤 시에만 스크롤바 보이기 (.show-scrollbar 클래스) */
+/* 스크롤 시에만 보이기 (JS Class Toggle) */
 .navigator.show-scrollbar {
-  /* Firefox */
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent; /* Firefox */
 }
-
 .navigator.show-scrollbar::-webkit-scrollbar-thumb {
-  /* Chrome, Edge, Safari */
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.3); /* WebKit */
 }
 
-/* =========================================
-  4. 리스트 및 버튼 스타일 (Multi-line 지원)
-   ========================================= */
+/* =================================================================
+   5. 목차 리스트 스타일 (Navigation List)
+   ================================================================= */
+
 .navigator ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-/* --- Depth 1 (대제목) --- */
+/* -----------------------------------------------------------------
+   Depth 1 (대제목)
+   ----------------------------------------------------------------- */
 .navigator .depth1 > li {
-  /* JS로 스크롤 이동 시 상단 여백 확보 */
-  scroll-margin: 20px 0;
+  scroll-margin: 56px 0 70px; /* 스크롤 이동 시 여백 확보 */
 }
 
+/* 버튼 스타일 */
 .navigator .depth1--item {
-  display: flex; /* Flex로 세로 중앙 정렬 */
+  display: flex;
   align-items: center;
-
   width: 100%;
-  min-height: 60px; /* 고정 높이 대신 최소 높이 사용 */
-  height: auto; /* 내용에 따라 늘어남 */
 
-  padding: 12px 28px;
-  text-align: left;
+  /* 높이 고정 (min/max 대신 height로 통일) */
+  height: 60px;
+  padding: 0 28px;
 
   background: transparent;
   border: none;
   box-sizing: border-box;
+  cursor: pointer;
+
+  /* 폰트 */
   color: #989898;
   font-size: 20px;
   font-weight: 600;
-
-  /* 줄바꿈 처리 */
   line-height: 1.4;
-  white-space: normal;
-  word-break: keep-all; /* 단어 단위 줄바꿈 */
+  text-align: left;
 
-  cursor: pointer;
   transition: color 0.2s, background 0.2s;
 }
 
+/* 활성 상태 */
 .navigator .depth1--item.active-nav-item {
   color: #333;
   background: #f1f1f1;
 }
 
-.navigator .depth1--item + .depth2 {
-  margin-top: 10px;
+/* 텍스트 (1줄 말줄임) */
+.navigator .depth1--text {
+  display: block;
+  width: 100%;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: keep-all;
 }
 
-/* --- Depth 2 (소제목) 래퍼 --- */
+/* -----------------------------------------------------------------
+   Depth 2 (소제목)
+   ----------------------------------------------------------------- */
 .navigator .depth2 {
   position: relative;
   padding-left: 28px;
-  margin: 0 0 10px 0;
+  margin: 10px 0; /* 상하 여백 */
 }
 
-/* 왼쪽 회색 라인 (가이드선) */
+/* 가이드 라인 (왼쪽 회색 선) */
 .navigator .depth2::before {
   content: "";
   position: absolute;
@@ -276,77 +263,80 @@
   border-radius: 2px;
 }
 
-/* --- 슬라이딩 마커 (Active Bar) --- */
+/* 슬라이딩 마커 (Active Bar) */
 .nav-marker {
   position: absolute;
-  left: 28px; /* 가이드선과 겹치게 배치 */
+  left: 28px;
   width: 2px;
   background-color: #666;
   border-radius: 2px;
-  opacity: 0; /* 평소엔 숨김 */
+
+  opacity: 0;
   pointer-events: none;
   z-index: 10;
 
-  /* 부드러운 이동 애니메이션 */
   transition: top 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), height 0.3s ease,
     opacity 0.2s ease;
 }
 
-/* --- Depth 2 (소제목) 버튼 --- */
+/* 버튼 스타일 */
 .navigator .depth2--item {
-  display: flex; /* Flex로 세로 중앙 정렬 */
+  display: flex;
   align-items: center;
-
   position: relative;
   width: 100%;
-  min-height: 46px; /* 고정 높이 대신 최소 높이 */
-  height: auto;
 
-  /* [수정] 상하우좌 모두 10px (왼쪽 10px 간격 확보) */
-  padding: 10px;
-
-  margin: 0;
-  box-sizing: border-box;
+  /* 높이 고정 (3줄까지 보이도록 설정됨) */
+  height: 46px;
+  padding: 0 10px;
 
   background: transparent;
   border: none;
-  color: #777;
-  text-align: left;
-  font-size: 14px;
-
-  /* 줄바꿈 처리 */
-  line-height: 1.4;
-  white-space: normal;
-  word-break: keep-all;
-
+  box-sizing: border-box;
   cursor: pointer;
+
+  /* 폰트 */
+  color: #777;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.06;
+  text-align: left;
 }
 
+/* Hover & Active */
 .navigator .depth2--item:hover {
   color: #333;
 }
-
 .navigator .depth2--item.active-nav-item {
   color: #333;
-  font-weight: 600;
+  /* font-weight는 400 유지 (줄바꿈 방지) */
 }
 
-/* 포커스 접근성 (필요 시 주석 해제) */
-/*
-.navigator button:focus {
-    outline: 2px solid #333;
-    outline-offset: -2px;
-}
-*/
-/* =========================================
-   5. 반응형 처리 (Responsive)
-   ========================================= */
+/* 텍스트 (3줄 말줄임) */
+.navigator .depth2--text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 
-/* 화면 너비가 1600px 미만일 때 (1599px 이하) */
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  white-space: normal;
+  word-break: keep-all;
+}
+
+/* Active 시 텍스트 효과 (Bold 대신 Shadow 사용) */
+.navigator .depth2--item.active-nav-item .depth2--text {
+  text-shadow: 0 0 1px #333;
+}
+
+/* =================================================================
+   6. 반응형 처리 (Responsive)
+   ================================================================= */
+
+/* 1600px 미만: 내비게이터 숨김 */
 @media screen and (max-width: 1599px) {
-  /* 1. 내비게이터 전체 숨기기 */
   .navigator-wrap {
     display: none !important;
-    /* !important는 JS가 inline style로 display를 건드릴 경우를 대비해 안전장치로 둠 */
   }
 }
