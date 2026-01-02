@@ -151,36 +151,42 @@
   padding: 0 0 24px 0;
   box-sizing: border-box;
 
-  /* [WebKit] 스크롤바 오버레이 처리 (공간 차지 X) */
-  overflow-y: overlay;
+  /* [수정] 표준 속성으로 변경 (overlay 제거) */
+  overflow-y: auto;
 
-  /* [Firefox] 스크롤바 스타일 */
+  /* [Firefox] 초기 상태: 스크롤바 숨김 (투명) */
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.3s;
 }
 
-/* --- WebKit Scrollbar Custom --- */
+/* --- WebKit (Chrome, Edge, Safari) Scrollbar Custom --- */
 .navigator::-webkit-scrollbar {
   width: 6px;
-  background-color: transparent;
+  background-color: transparent; /* 트랙(배경) 투명 */
 }
+
 .navigator::-webkit-scrollbar-track {
   background-color: transparent;
 }
+
 .navigator::-webkit-scrollbar-thumb {
-  background-color: transparent;
+  background-color: transparent; /* 핸들(Thumb) 초기 투명 */
   border-radius: 3px;
   background-clip: padding-box;
   border: 1px solid transparent;
+  transition: background-color 0.3s;
 }
 
 /* 스크롤 시에만 보이기 (JS Class Toggle) */
 .navigator.show-scrollbar {
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent; /* Firefox */
+  /* [Firefox] 핸들 색상 표시 */
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
+
 .navigator.show-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.3); /* WebKit */
+  /* [WebKit] 핸들 색상 표시 */
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 /* =================================================================
@@ -197,7 +203,7 @@
    Depth 1 (대제목)
    ----------------------------------------------------------------- */
 .navigator .depth1 > li {
-  scroll-margin: 56px 0 70px; /* 스크롤 이동 시 여백 확보 */
+  scroll-margin: 40px 0; /* 스크롤 이동 시 여백 확보 */
 }
 
 /* 버튼 스타일 */
@@ -205,9 +211,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-
-  /* 높이 고정 (min/max 대신 height로 통일) */
-  height: 60px;
+  height: 60px; /* 높이 고정 */
   padding: 0 28px;
 
   background: transparent;
@@ -219,6 +223,7 @@
   color: #989898;
   font-size: 20px;
   font-weight: 600;
+  line-height: 1.4;
   text-align: left;
 
   transition: color 0.2s, background 0.2s;
@@ -234,7 +239,7 @@
 .navigator .depth1--text {
   display: block;
   width: 100%;
-  line-height: 1.8;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -284,9 +289,7 @@
   align-items: center;
   position: relative;
   width: 100%;
-
-  /* 높이 고정 (3줄까지 보이도록 설정됨) */
-  height: 46px;
+  height: 46px; /* 높이 고정 */
   padding: 0 10px;
 
   background: transparent;
@@ -296,8 +299,9 @@
 
   /* 폰트 */
   color: #777;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
+  line-height: 1.06;
   text-align: left;
 }
 
@@ -307,22 +311,25 @@
 }
 .navigator .depth2--item.active-nav-item {
   color: #333;
-  /* font-weight는 400 유지 (줄바꿈 방지) */
+  /* font-weight: 600; -> 레이아웃 흔들림 방지를 위해 제거하거나 대체 */
 }
 
 /* 텍스트 (3줄 말줄임) */
 .navigator .depth2--text {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  line-height: 1.06;
+
   overflow: hidden;
   text-overflow: ellipsis;
+
   white-space: normal;
   word-break: keep-all;
 }
 
-/* Active 시 텍스트 효과 (Bold 대신 Shadow 사용) */
+/* Active 시 텍스트 효과 (Bold 대체: Text Shadow)
+   - font-weight 변경 시 줄바꿈이 일어나는 현상을 막기 위함
+*/
 .navigator .depth2--item.active-nav-item .depth2--text {
   text-shadow: 0 0 1px #333;
 }

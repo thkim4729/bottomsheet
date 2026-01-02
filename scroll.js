@@ -3,6 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const nav = uiInit();
 });
 
+/**
+ * [초기화 진입점]
+ * 설정을 주입하고 내비게이터 모듈을 시작합니다.
+ */
 function uiInit() {
   return dynamicNavigator({
     scrollToTop: false, // 새로고침 시 최상단 이동 여부
@@ -13,8 +17,7 @@ function uiInit() {
 
 /**
  * [Dynamic Navigator Module]
- * - 기능: Scroll Spy, Smooth Scroll, Live DOM Update, Memory Management
- * - 최적화: 중복 연산 제거, 논리적 그룹핑, 가독성 강화
+ * 본문의 H1, H2를 파싱하여 목차를 생성하고 스크롤과 연동하는 핵심 모듈입니다.
  */
 function dynamicNavigator(options = {}) {
   // =================================================================
@@ -66,10 +69,10 @@ function dynamicNavigator(options = {}) {
     observer: null,
     resizeObserver: null,
     debounceTimer: null,
-    tick: false, // 스크롤 스로틀링용 플래그
+    tick: false,
   };
 
-  // [유틸] 로그 출력 (한글)
+  // [유틸] 디버그 모드일 때만 로그를 출력하는 함수
   const logger = (msg, ...args) => {
     if (CONFIG.debug) {
       console.log(
@@ -80,28 +83,32 @@ function dynamicNavigator(options = {}) {
     }
   };
 
-  // 필수 요소 검증
   if (!DOM.wrap || !DOM.area || !DOM.inner) {
     console.error("[Navigator] 필수 DOM 요소를 찾을 수 없습니다.");
     return;
   }
 
-  // 모듈 시작
+  // 모듈 실행
   init();
 
-  // 외부 제어 API 반환
+  // 외부 제어용 API 반환
   return {
     refresh: refreshNavigator,
     destroy: destroy,
   };
 
   // =================================================================
-  // [2] 생명주기 관리 (Lifecycle: Init, Refresh, Destroy)
+  // [2] 생명주기 관리 (Lifecycle)
   // =================================================================
+  /**
+   * [생성자]
+   * 내비게이터를 처음 실행할 때 필요한 준비 작업을 수행합니다.
+   * - 화면 그리기, 이벤트 연결, 감시 시작
+   */
   function init() {
     logger("초기화 시작...");
 
-    // 1. 초기 렌더링 및 계산 (여기서 updateDimensions 등이 모두 실행됨)
+    // 1. 초기 렌더링
     refreshNavigator();
 
     // 2. 스크롤 위치 초기화
@@ -119,8 +126,9 @@ function dynamicNavigator(options = {}) {
   }
 
   /**
-   * [새로고침] 파싱 -> 렌더링 -> 치수 계산 -> 위치 보정
-   * DOM 변경 시 또는 초기화 시 호출됩니다.
+   * [새로고침]
+   * DOM 변경 시 호출되어 내비게이터를 완전히 다시 그립니다.
+   * 파싱 -> 렌더링 -> 치수 계산 -> 위치 보정 과정을 수행합니다.
    */
   function refreshNavigator() {
     const structure = parseContentStructure();
@@ -152,7 +160,9 @@ function dynamicNavigator(options = {}) {
   }
 
   /**
-   * [종료] 메모리 정리 및 기능 정지
+   * [소멸자]
+   * 메모리 누수를 방지하기 위해 등록된 이벤트와 옵저버를 모두 제거합니다.
+   * (SPA 페이지 이동 시 등에 사용)
    */
   function destroy() {
     logger("종료 및 리소스 정리 중...");
@@ -179,6 +189,11 @@ function dynamicNavigator(options = {}) {
   // =================================================================
   // [3] 핵심 로직: 파싱 및 렌더링 (Core Logic)
   // =================================================================
+  /**
+   * [파싱]
+   * 본문의 H1, H2 태그를 찾아 계층형 데이터(JSON 형태)로 변환합니다.
+   * display: none 인 요소는 제외합니다.
+   */
   function parseContentStructure() {
     const [h1Sel, h2Sel] = CONFIG.selectors.titles;
     const h1List = document.querySelectorAll(h1Sel);
@@ -227,6 +242,10 @@ function dynamicNavigator(options = {}) {
     return result;
   }
 
+  /**
+   * [렌더링]
+   * 파싱된 데이터를 바탕으로 실제 HTML 태그(nav, ul, li, button)를 생성합니다.
+   */
   function renderNavigation(structure) {
     const navEl = document.createElement("nav");
     navEl.className = CONFIG.selectors.nav;
@@ -268,6 +287,11 @@ function dynamicNavigator(options = {}) {
   // =================================================================
   // [4] 계산 및 상태 업데이트 (Calculations)
   // =================================================================
+  /**
+   * [치수 계산]
+   * 각 섹션의 Y좌표(top)와 헤더 높이 등을 미리 계산하여 STATE에 저장합니다.
+   * 스크롤 할 때마다 계산하면 성능이 저하되므로 미리 계산합니다.
+   */
   function updateDimensions() {
     STATE.headerHeight = DOM.header ? DOM.header.offsetHeight : 0;
     STATE.winHeight = window.innerHeight;
@@ -292,6 +316,10 @@ function dynamicNavigator(options = {}) {
     }
   }
 
+  /**
+   * [위치 보정]
+   * 내비게이터가 헤더나 푸터와 겹치지 않도록 top, bottom 값을 조정합니다.
+   */
   function updateLayoutPosition() {
     DOM.area.style.top = `${STATE.headerHeight}px`;
     DOM.inner.style.paddingTop = `${CONFIG.offset.top}px`;
@@ -306,17 +334,22 @@ function dynamicNavigator(options = {}) {
     DOM.area.style.bottom = `${bottomVal}px`;
   }
 
+  /**
+   * [스크롤 스파이]
+   * 현재 스크롤 위치를 감지하여 해당하는 내비게이터 버튼을 활성화합니다.
+   * @param {boolean} isInstant - true면 내비게이터 스크롤을 즉시 이동, false면 부드럽게 이동
+   */
   function updateActiveState(isInstant = false) {
     const scrollY =
       window.scrollY + STATE.headerHeight + CONFIG.offset.scrollSpyBuffer;
-    const scrollBehavior = isInstant ? "auto" : "smooth";
 
     // 1. 최상단 처리
     if (window.scrollY <= 0) {
       if (DOM.navLinks && DOM.navLinks.length > 0)
         activateButton(DOM.navLinks[0], isInstant);
       const navEl = DOM.inner.querySelector(`.${CONFIG.selectors.nav}`);
-      if (navEl) navEl.scrollTo({ top: 0, behavior: scrollBehavior });
+      if (navEl)
+        navEl.scrollTo({ top: 0, behavior: isInstant ? "auto" : "smooth" });
       return;
     }
 
@@ -327,12 +360,15 @@ function dynamicNavigator(options = {}) {
         activateButton(lastBtn, isInstant);
         const navEl = DOM.inner.querySelector(`.${CONFIG.selectors.nav}`);
         if (navEl)
-          navEl.scrollTo({ top: navEl.scrollHeight, behavior: scrollBehavior });
+          navEl.scrollTo({
+            top: navEl.scrollHeight,
+            behavior: isInstant ? "auto" : "smooth",
+          });
       }
       return;
     }
 
-    // 3. 일반 섹션 매칭
+    // 3. 일반 섹션 매칭 (역순 탐색)
     if (!STATE.sections || STATE.sections.length === 0) return;
 
     for (let i = STATE.sections.length - 1; i >= 0; i--) {
@@ -347,6 +383,10 @@ function dynamicNavigator(options = {}) {
   // =================================================================
   // [5] 이벤트 핸들러 (Event Handlers)
   // =================================================================
+  /**
+   * [스크롤 핸들러]
+   * 스크롤 시 위치 보정 및 활성 상태 갱신을 수행합니다. (requestAnimationFrame 최적화)
+   */
   function onScroll() {
     updateLayoutPosition();
     if (!STATE.tick) {
@@ -358,12 +398,20 @@ function dynamicNavigator(options = {}) {
     }
   }
 
+  /**
+   * [리사이즈 핸들러]
+   * 창 크기가 변하면 치수와 위치를 다시 계산합니다.
+   */
   function onResize() {
     updateDimensions();
     updateLayoutPosition();
     updateActiveState(false);
   }
 
+  /**
+   * [클릭 핸들러]
+   * 내비게이터 버튼 클릭 시 해당 본문 위치로 부드럽게 이동합니다.
+   */
   function handleNavClick(e) {
     const targetBtn = e.currentTarget;
     const targetId = targetBtn.dataset.target;
@@ -383,6 +431,10 @@ function dynamicNavigator(options = {}) {
     }
   }
 
+  /**
+   * [이벤트 바인딩]
+   * 스크롤, 리사이즈 이벤트를 등록합니다.
+   */
   function bindEvents() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
@@ -393,10 +445,15 @@ function dynamicNavigator(options = {}) {
     }
   }
 
+  /**
+   * [DOM 변경 감시]
+   * MutationObserver를 사용하여 본문 내용 변화(display:none 등)를 감지합니다.
+   */
   function observeContentChanges() {
     if (!DOM.content) return;
 
     const observerCallback = () => {
+      // 변경이 너무 자주 일어나는 것을 방지 (Debounce 0.2초)
       if (STATE.debounceTimer) clearTimeout(STATE.debounceTimer);
       STATE.debounceTimer = setTimeout(() => {
         logger("DOM 변경 감지. 갱신합니다...");
@@ -417,6 +474,10 @@ function dynamicNavigator(options = {}) {
   // =================================================================
   // [6] 유틸리티 및 헬퍼 함수 (Utilities)
   // =================================================================
+  /**
+   * [버튼 활성화]
+   * 특정 버튼에 active 클래스를 주고, 내비게이터 스크롤을 해당 위치로 이동시킵니다.
+   */
   function activateButton(targetBtn, isInstant = false) {
     if (!targetBtn || targetBtn.classList.contains(CONFIG.classes.active))
       return;
@@ -425,6 +486,7 @@ function dynamicNavigator(options = {}) {
     targetBtn.classList.add(CONFIG.classes.active);
     targetBtn.setAttribute("aria-current", "true");
 
+    // 부모(Depth 1)와 자식(Depth 2) 관계를 고려하여 스크롤 대상을 선정
     const li = targetBtn.closest("li");
     const parentUl = li.parentElement;
     let scrollTargetElement = li;
@@ -448,6 +510,7 @@ function dynamicNavigator(options = {}) {
       scrollTargetElement = li;
     }
 
+    // 내비게이터 내부 스크롤 이동 (화면에 보이도록)
     const behavior = isInstant ? "auto" : "smooth";
     scrollTargetElement.scrollIntoView({
       behavior: behavior,
@@ -455,6 +518,10 @@ function dynamicNavigator(options = {}) {
     });
   }
 
+  /**
+   * [활성 상태 초기화]
+   * 모든 버튼의 active 클래스를 제거하고 마커를 숨깁니다.
+   */
   function resetActiveStatus() {
     if (!DOM.navLinks) return;
     DOM.navLinks.forEach((el) => {
@@ -466,6 +533,10 @@ function dynamicNavigator(options = {}) {
       .forEach((m) => (m.style.opacity = "0"));
   }
 
+  /**
+   * [마커 이동]
+   * Depth 2 활성화 시 옆에 표시되는 바(Bar)의 위치를 조정합니다.
+   */
   function moveMarker(ul, activeLi) {
     const marker = ul.querySelector(".nav-marker");
     if (marker && activeLi) {
@@ -475,6 +546,10 @@ function dynamicNavigator(options = {}) {
     }
   }
 
+  /**
+   * [버튼 생성]
+   * 버튼 태그와 내부 텍스트 span을 생성합니다.
+   */
   function createButton(data) {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -490,10 +565,18 @@ function dynamicNavigator(options = {}) {
     return btn;
   }
 
+  /**
+   * [가시성 체크]
+   * 요소가 display: none 상태인지 확인합니다. (offsetParent 이용)
+   */
   function isVisible(el) {
     return el.offsetParent !== null;
   }
 
+  /**
+   * [ID 관리]
+   * 요소에 data-nav-title 속성이 없으면 생성하여 부여합니다.
+   */
   function getOrSetNavAttribute(element, index, prefix) {
     let val = element.getAttribute(CONFIG.attrName);
     if (!val) {
@@ -506,6 +589,10 @@ function dynamicNavigator(options = {}) {
     return val;
   }
 
+  /**
+   * [커스텀 스무스 스크롤]
+   * JS 기반의 부드러운 스크롤 애니메이션을 실행합니다.
+   */
   function smoothScrollTo(targetPosition, callback) {
     const start = window.scrollY;
     const distance = targetPosition - start;
@@ -529,6 +616,10 @@ function dynamicNavigator(options = {}) {
     requestAnimationFrame(animation);
   }
 
+  /**
+   * [스크롤바 핸들러]
+   * 내비게이터에 스크롤 발생 시에만 스크롤바를 표시하고, 멈추면 숨깁니다.
+   */
   function attachScrollbarHandler(el) {
     let timer;
     el.addEventListener(
