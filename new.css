@@ -219,7 +219,6 @@
   color: #989898;
   font-size: 20px;
   font-weight: 600;
-  line-height: 1.4;
   text-align: left;
 
   transition: color 0.2s, background 0.2s;
@@ -235,7 +234,7 @@
 .navigator .depth1--text {
   display: block;
   width: 100%;
-
+  line-height: 1.8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -297,9 +296,8 @@
 
   /* 폰트 */
   color: #777;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
-  line-height: 1.06;
   text-align: left;
 }
 
@@ -317,10 +315,9 @@
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-
+  line-height: 1.06;
   overflow: hidden;
   text-overflow: ellipsis;
-
   white-space: normal;
   word-break: keep-all;
 }

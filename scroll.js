@@ -20,8 +20,7 @@ function dynamicNavigator(options = {}) {
     scrollToTop: options.scrollToTop ?? false,
     scrollDuration: options.scrollDuration || 500,
 
-    // [변경] 더 직관적인 속성명으로 수정
-    attrName: "data-nav-title",
+    attrName: "data-nav-title", // [변경됨] 더 직관적인 속성명
 
     selectors: {
       wrap: ".navigator-wrap", // 내비게이터 전체 래퍼
@@ -113,7 +112,7 @@ function dynamicNavigator(options = {}) {
     const result = [];
 
     h1List.forEach((h1, idx) => {
-      // [변경] Depth 1 ID 생성: nav-title-1, nav-title-2 ...
+      // Depth 1 ID 생성 (nav-title-1)
       const h1Id = getOrSetNavAttribute(h1, idx + 1, "nav-title");
 
       const section = {
@@ -137,8 +136,7 @@ function dynamicNavigator(options = {}) {
 
         if (h2) {
           subIdx++;
-          // [변경] Depth 2 ID 생성: nav-title-1-1, nav-title-1-2 ...
-          // prefix를 부모와 동일하게 'nav-title'로 통일하여 직관성 확보
+          // Depth 2 ID 생성 (nav-title-1-1)
           const h2Id = getOrSetNavAttribute(
             h2,
             `${idx + 1}-${subIdx}`,
@@ -319,25 +317,30 @@ function dynamicNavigator(options = {}) {
     const scrollY =
       window.scrollY + STATE.headerHeight + CONFIG.offset.scrollSpyBuffer;
 
-    // 1. 페이지 최상단
+    // 1. [상단 처리] 페이지 최상단 도달 시
     if (window.scrollY <= 0) {
       if (DOM.navLinks.length > 0) activateButton(DOM.navLinks[0]);
+
+      // 내비게이터 스크롤도 0으로 초기화
+      const navEl = DOM.inner.querySelector(`.${CONFIG.selectors.nav}`);
+      if (navEl) navEl.scrollTo({ top: 0, behavior: "smooth" });
+
       return;
     }
 
-    // 2. 페이지 최하단
+    // 2. [하단 처리] 페이지 최하단 도달 시
     if (window.scrollY + STATE.winHeight >= STATE.docHeight - 5) {
       const lastBtn = DOM.navLinks[DOM.navLinks.length - 1];
       activateButton(lastBtn);
 
-      // 내비게이터 자체 스크롤도 끝까지 내림
+      // 내비게이터 스크롤도 끝까지 내림
       const navEl = DOM.inner.querySelector(`.${CONFIG.selectors.nav}`);
       if (navEl)
         navEl.scrollTo({ top: navEl.scrollHeight, behavior: "smooth" });
       return;
     }
 
-    // 3. 일반 섹션 매칭 (역순 탐색)
+    // 3. [일반 처리] 현재 섹션 매칭 (역순 탐색)
     for (let i = STATE.sections.length - 1; i >= 0; i--) {
       const sec = STATE.sections[i];
       if (scrollY >= sec.top) {
@@ -370,7 +373,7 @@ function dynamicNavigator(options = {}) {
   // =================================================================
   /**
    * 버튼 활성화 처리 함수
-   * - Depth 1, Depth 2 관계없이 항상 '부모 Depth 1'을 기준으로 뷰포트 정렬을 수행합니다.
+   * - Depth 1, Depth 2 관계없이 항상 '부모 Depth 1'을 기준으로 뷰포트 정렬(nearest)을 수행합니다.
    */
   function activateButton(targetBtn) {
     if (!targetBtn || targetBtn.classList.contains(CONFIG.classes.active))
@@ -417,7 +420,6 @@ function dynamicNavigator(options = {}) {
     }
 
     // [Standard] 타겟 요소(Depth 1)가 화면 안에 들어오도록만 최소한으로 스크롤 이동
-    // (강제 중앙 정렬이나 상단 정렬 없이, 가장 자연스러운 기본 동작)
     scrollTargetElement.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
