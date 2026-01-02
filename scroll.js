@@ -1,18 +1,24 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // 내비게이터 실행 및 제어 객체 할당
   const nav = uiInit();
 });
 
 function uiInit() {
   return dynamicNavigator({
-    scrollToTop: false,
-    scrollDuration: 500,
-    debug: true,
+    scrollToTop: false, // 새로고침 시 최상단 이동 여부
+    scrollDuration: 500, // 스크롤 애니메이션 속도 (ms)
+    debug: true, // [디버깅] 한글 로그 출력 여부
   });
 }
 
+/**
+ * [Dynamic Navigator Module]
+ * - 기능: Scroll Spy, Smooth Scroll, Live DOM Update, Memory Management
+ * - 최적화: 중복 연산 제거, 논리적 그룹핑, 가독성 강화
+ */
 function dynamicNavigator(options = {}) {
   // =================================================================
-  // [1] 설정 및 상태 관리
+  // [1] 설정 및 상태 관리 (Config & State)
   // =================================================================
   const CONFIG = {
     debug: options.debug ?? false,
@@ -60,11 +66,10 @@ function dynamicNavigator(options = {}) {
     observer: null,
     resizeObserver: null,
     debounceTimer: null,
-
-    // [수정] tick 변수를 STATE 객체로 이동 (초기화 오류 해결)
-    tick: false,
+    tick: false, // 스크롤 스로틀링용 플래그
   };
 
+  // [유틸] 로그 출력 (한글)
   const logger = (msg, ...args) => {
     if (CONFIG.debug) {
       console.log(
@@ -75,41 +80,82 @@ function dynamicNavigator(options = {}) {
     }
   };
 
+  // 필수 요소 검증
   if (!DOM.wrap || !DOM.area || !DOM.inner) {
-    console.error("[Navigator] Essential DOM elements not found.");
+    console.error("[Navigator] 필수 DOM 요소를 찾을 수 없습니다.");
     return;
   }
 
-  // 초기화 실행
+  // 모듈 시작
   init();
 
+  // 외부 제어 API 반환
   return {
     refresh: refreshNavigator,
     destroy: destroy,
   };
 
   // =================================================================
-  // [Function] 초기화 및 종료
+  // [2] 생명주기 관리 (Lifecycle: Init, Refresh, Destroy)
   // =================================================================
   function init() {
-    logger("Initializing...");
+    logger("초기화 시작...");
+
+    // 1. 초기 렌더링 및 계산 (여기서 updateDimensions 등이 모두 실행됨)
     refreshNavigator();
 
+    // 2. 스크롤 위치 초기화
     if ("scrollRestoration" in history) {
       history.scrollRestoration = CONFIG.scrollToTop ? "manual" : "auto";
     }
     if (CONFIG.scrollToTop) {
       setTimeout(() => window.scrollTo(0, 0), 0);
+      logger("설정에 따라 최상단으로 이동했습니다.");
     }
 
+    // 3. 이벤트 감시 시작
     bindEvents();
     observeContentChanges();
-    updateDimensions();
-    updateLayoutPosition();
   }
 
+  /**
+   * [새로고침] 파싱 -> 렌더링 -> 치수 계산 -> 위치 보정
+   * DOM 변경 시 또는 초기화 시 호출됩니다.
+   */
+  function refreshNavigator() {
+    const structure = parseContentStructure();
+
+    // 타이틀이 없으면 숨김 처리
+    if (structure.length === 0) {
+      DOM.wrap.style.display = "none";
+      DOM.inner.replaceChildren();
+      DOM.navLinks = null;
+      STATE.sections = [];
+      logger("표시할 목차가 없어 숨깁니다.");
+      return;
+    } else {
+      DOM.wrap.style.display = "block";
+    }
+
+    // 다시 그리기
+    DOM.inner.replaceChildren();
+    renderNavigation(structure);
+
+    // 치수 및 레이아웃 재계산
+    updateDimensions();
+    updateLayoutPosition();
+
+    // 현재 위치로 즉시 이동
+    updateActiveState(true);
+
+    logger(`갱신 완료. (총 ${structure.length}개 챕터)`);
+  }
+
+  /**
+   * [종료] 메모리 정리 및 기능 정지
+   */
   function destroy() {
-    logger("Destroying navigator instance...");
+    logger("종료 및 리소스 정리 중...");
 
     window.removeEventListener("scroll", onScroll);
     window.removeEventListener("resize", onResize);
@@ -118,43 +164,20 @@ function dynamicNavigator(options = {}) {
       STATE.observer.disconnect();
       STATE.observer = null;
     }
-
     if (STATE.resizeObserver) {
       STATE.resizeObserver.disconnect();
       STATE.resizeObserver = null;
     }
-
     if (STATE.debounceTimer) clearTimeout(STATE.debounceTimer);
 
     if (DOM.inner) DOM.inner.replaceChildren();
     if (DOM.wrap) DOM.wrap.style.display = "none";
-  }
 
-  function refreshNavigator() {
-    const structure = parseContentStructure();
-
-    if (structure.length === 0) {
-      DOM.wrap.style.display = "none";
-      DOM.inner.replaceChildren();
-      DOM.navLinks = null;
-      STATE.sections = [];
-      logger("No visible titles. Hidden.");
-      return;
-    } else {
-      DOM.wrap.style.display = "block";
-    }
-
-    DOM.inner.replaceChildren();
-    renderNavigation(structure);
-
-    updateDimensions();
-    updateActiveState(true);
-
-    logger(`Refreshed. Items: ${structure.length}`);
+    logger("종료 완료.");
   }
 
   // =================================================================
-  // [Logic] 파싱 및 가시성 체크
+  // [3] 핵심 로직: 파싱 및 렌더링 (Core Logic)
   // =================================================================
   function parseContentStructure() {
     const [h1Sel, h2Sel] = CONFIG.selectors.titles;
@@ -162,6 +185,7 @@ function dynamicNavigator(options = {}) {
     const result = [];
 
     h1List.forEach((h1, idx) => {
+      // 숨겨진 요소 건너뛰기
       if (!isVisible(h1)) return;
 
       const h1Id = getOrSetNavAttribute(h1, idx + 1, "nav-title");
@@ -203,25 +227,6 @@ function dynamicNavigator(options = {}) {
     return result;
   }
 
-  function isVisible(el) {
-    return el.offsetParent !== null;
-  }
-
-  function getOrSetNavAttribute(element, index, prefix) {
-    let val = element.getAttribute(CONFIG.attrName);
-    if (!val) {
-      val = `${prefix}-${index}`;
-      element.setAttribute(CONFIG.attrName, val);
-    }
-    if (!element.hasAttribute("tabindex")) {
-      element.setAttribute("tabindex", "-1");
-    }
-    return val;
-  }
-
-  // =================================================================
-  // [Logic] 렌더링
-  // =================================================================
   function renderNavigation(structure) {
     const navEl = document.createElement("nav");
     navEl.className = CONFIG.selectors.nav;
@@ -238,6 +243,7 @@ function dynamicNavigator(options = {}) {
       if (sec.children.length > 0) {
         const subUl = document.createElement("ul");
         subUl.className = "depth2";
+
         const marker = document.createElement("span");
         marker.className = "nav-marker";
         marker.setAttribute("aria-hidden", "true");
@@ -259,77 +265,8 @@ function dynamicNavigator(options = {}) {
     attachScrollbarHandler(navEl);
   }
 
-  function createButton(data) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `${data.type}--item`;
-
-    const span = document.createElement("span");
-    span.className = `${data.type}--text`;
-    span.textContent = data.text.trim();
-
-    btn.appendChild(span);
-    btn.dataset.target = data.id;
-    btn.addEventListener("click", handleNavClick);
-    return btn;
-  }
-
   // =================================================================
-  // [Event] 이벤트 감시 및 옵저버
-  // =================================================================
-
-  // [수정] onScroll 함수에서 STATE.tick 사용
-  function onScroll() {
-    updateLayoutPosition();
-    if (!STATE.tick) {
-      window.requestAnimationFrame(() => {
-        updateActiveState(false);
-        STATE.tick = false; // [수정]
-      });
-      STATE.tick = true; // [수정]
-    }
-  }
-
-  function onResize() {
-    updateDimensions();
-    updateLayoutPosition();
-    updateActiveState(false);
-  }
-
-  function bindEvents() {
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
-
-    if (DOM.header) {
-      STATE.resizeObserver = new ResizeObserver(onResize);
-      STATE.resizeObserver.observe(DOM.header);
-    }
-  }
-
-  function observeContentChanges() {
-    if (!DOM.content) return;
-
-    const observerCallback = (mutations) => {
-      if (STATE.debounceTimer) clearTimeout(STATE.debounceTimer);
-      STATE.debounceTimer = setTimeout(() => {
-        logger("DOM changed. Refreshing...");
-        refreshNavigator();
-      }, 200);
-    };
-
-    STATE.observer = new MutationObserver(observerCallback);
-    STATE.observer.observe(DOM.content, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["style", "class", "hidden"],
-    });
-
-    logger("Observer started.");
-  }
-
-  // =================================================================
-  // [Logic] 위치 계산 및 업데이트
+  // [4] 계산 및 상태 업데이트 (Calculations)
   // =================================================================
   function updateDimensions() {
     STATE.headerHeight = DOM.header ? DOM.header.offsetHeight : 0;
@@ -374,7 +311,7 @@ function dynamicNavigator(options = {}) {
       window.scrollY + STATE.headerHeight + CONFIG.offset.scrollSpyBuffer;
     const scrollBehavior = isInstant ? "auto" : "smooth";
 
-    // 1. Top
+    // 1. 최상단 처리
     if (window.scrollY <= 0) {
       if (DOM.navLinks && DOM.navLinks.length > 0)
         activateButton(DOM.navLinks[0], isInstant);
@@ -383,7 +320,7 @@ function dynamicNavigator(options = {}) {
       return;
     }
 
-    // 2. Bottom
+    // 2. 최하단 처리
     if (window.scrollY + STATE.winHeight >= STATE.docHeight - 5) {
       if (DOM.navLinks && DOM.navLinks.length > 0) {
         const lastBtn = DOM.navLinks[DOM.navLinks.length - 1];
@@ -395,7 +332,7 @@ function dynamicNavigator(options = {}) {
       return;
     }
 
-    // 3. Sections
+    // 3. 일반 섹션 매칭
     if (!STATE.sections || STATE.sections.length === 0) return;
 
     for (let i = STATE.sections.length - 1; i >= 0; i--) {
@@ -407,15 +344,34 @@ function dynamicNavigator(options = {}) {
     }
   }
 
+  // =================================================================
+  // [5] 이벤트 핸들러 (Event Handlers)
+  // =================================================================
+  function onScroll() {
+    updateLayoutPosition();
+    if (!STATE.tick) {
+      window.requestAnimationFrame(() => {
+        updateActiveState(false);
+        STATE.tick = false;
+      });
+      STATE.tick = true;
+    }
+  }
+
+  function onResize() {
+    updateDimensions();
+    updateLayoutPosition();
+    updateActiveState(false);
+  }
+
   function handleNavClick(e) {
     const targetBtn = e.currentTarget;
     const targetId = targetBtn.dataset.target;
-    logger(`Click: "${targetBtn.textContent.trim()}"`);
+    logger(`클릭됨: "${targetBtn.textContent.trim()}"`);
 
     const targetElem = document.querySelector(
       `[${CONFIG.attrName}="${targetId}"]`
     );
-
     if (targetElem) {
       const targetTop =
         targetElem.getBoundingClientRect().top +
@@ -427,8 +383,39 @@ function dynamicNavigator(options = {}) {
     }
   }
 
+  function bindEvents() {
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+
+    if (DOM.header) {
+      STATE.resizeObserver = new ResizeObserver(onResize);
+      STATE.resizeObserver.observe(DOM.header);
+    }
+  }
+
+  function observeContentChanges() {
+    if (!DOM.content) return;
+
+    const observerCallback = () => {
+      if (STATE.debounceTimer) clearTimeout(STATE.debounceTimer);
+      STATE.debounceTimer = setTimeout(() => {
+        logger("DOM 변경 감지. 갱신합니다...");
+        refreshNavigator();
+      }, 200);
+    };
+
+    STATE.observer = new MutationObserver(observerCallback);
+    STATE.observer.observe(DOM.content, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["style", "class", "hidden"],
+    });
+    logger("변경 감시 시작됨.");
+  }
+
   // =================================================================
-  // [UI] 유틸리티
+  // [6] 유틸리티 및 헬퍼 함수 (Utilities)
   // =================================================================
   function activateButton(targetBtn, isInstant = false) {
     if (!targetBtn || targetBtn.classList.contains(CONFIG.classes.active))
@@ -486,6 +473,37 @@ function dynamicNavigator(options = {}) {
       marker.style.height = `${activeLi.offsetHeight}px`;
       marker.style.opacity = "1";
     }
+  }
+
+  function createButton(data) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `${data.type}--item`;
+
+    const span = document.createElement("span");
+    span.className = `${data.type}--text`;
+    span.textContent = data.text.trim();
+
+    btn.appendChild(span);
+    btn.dataset.target = data.id;
+    btn.addEventListener("click", handleNavClick);
+    return btn;
+  }
+
+  function isVisible(el) {
+    return el.offsetParent !== null;
+  }
+
+  function getOrSetNavAttribute(element, index, prefix) {
+    let val = element.getAttribute(CONFIG.attrName);
+    if (!val) {
+      val = `${prefix}-${index}`;
+      element.setAttribute(CONFIG.attrName, val);
+    }
+    if (!element.hasAttribute("tabindex")) {
+      element.setAttribute("tabindex", "-1");
+    }
+    return val;
   }
 
   function smoothScrollTo(targetPosition, callback) {
