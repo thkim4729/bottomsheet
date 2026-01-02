@@ -1,18 +1,15 @@
-document.addEventListener("DOMContentLoaded", uiInit);
+document.addEventListener("DOMContentLoaded", () => {
+  const nav = uiInit();
+});
 
 function uiInit() {
-  dynamicNavigator({
-    scrollToTop: false, // 새로고침 시 상단 이동 여부
-    scrollDuration: 500, // 본문 스크롤 이동 속도 (ms)
-    debug: true, // [ON] 디버그 모드 켜짐
+  return dynamicNavigator({
+    scrollToTop: false,
+    scrollDuration: 500,
+    debug: true,
   });
 }
 
-/**
- * [Dynamic Navigator Module]
- * - 기능: Scroll Spy, Smooth Scroll, Dynamic Update
- * - 특징: innerHTML 미사용 (DOM 조작 메서드만 사용)
- */
 function dynamicNavigator(options = {}) {
   // =================================================================
   // [1] 설정 및 상태 관리
@@ -60,6 +57,12 @@ function dynamicNavigator(options = {}) {
     winHeight: 0,
     docHeight: 0,
     sections: [],
+    observer: null,
+    resizeObserver: null,
+    debounceTimer: null,
+
+    // [수정] tick 변수를 STATE 객체로 이동 (초기화 오류 해결)
+    tick: false,
   };
 
   const logger = (msg, ...args) => {
@@ -77,8 +80,17 @@ function dynamicNavigator(options = {}) {
     return;
   }
 
+  // 초기화 실행
   init();
 
+  return {
+    refresh: refreshNavigator,
+    destroy: destroy,
+  };
+
+  // =================================================================
+  // [Function] 초기화 및 종료
+  // =================================================================
   function init() {
     logger("Initializing...");
     refreshNavigator();
@@ -88,7 +100,6 @@ function dynamicNavigator(options = {}) {
     }
     if (CONFIG.scrollToTop) {
       setTimeout(() => window.scrollTo(0, 0), 0);
-      logger("Scrolled to top (Config: scrollToTop=true)");
     }
 
     bindEvents();
@@ -97,43 +108,53 @@ function dynamicNavigator(options = {}) {
     updateLayoutPosition();
   }
 
-  /**
-   * [Core] 내비게이터 새로고침
-   */
+  function destroy() {
+    logger("Destroying navigator instance...");
+
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("resize", onResize);
+
+    if (STATE.observer) {
+      STATE.observer.disconnect();
+      STATE.observer = null;
+    }
+
+    if (STATE.resizeObserver) {
+      STATE.resizeObserver.disconnect();
+      STATE.resizeObserver = null;
+    }
+
+    if (STATE.debounceTimer) clearTimeout(STATE.debounceTimer);
+
+    if (DOM.inner) DOM.inner.replaceChildren();
+    if (DOM.wrap) DOM.wrap.style.display = "none";
+  }
+
   function refreshNavigator() {
-    // 1. 파싱
     const structure = parseContentStructure();
 
-    // 2. 타이틀 유무 확인
     if (structure.length === 0) {
       DOM.wrap.style.display = "none";
-
-      // [수정] innerHTML = "" 대신 replaceChildren() 사용 (안전하게 비우기)
       DOM.inner.replaceChildren();
-
       DOM.navLinks = null;
       STATE.sections = [];
-      logger("No visible titles found. Navigator hidden.");
+      logger("No visible titles. Hidden.");
       return;
     } else {
       DOM.wrap.style.display = "block";
     }
 
-    // 3. 렌더링
-    // [수정] 기존 내용을 안전하게 비우고 다시 그림
     DOM.inner.replaceChildren();
     renderNavigation(structure);
 
     updateDimensions();
-
-    // 4. 활성 상태 갱신 (즉시 이동)
     updateActiveState(true);
 
-    logger(`Refreshed. Structure count: ${structure.length}`);
+    logger(`Refreshed. Items: ${structure.length}`);
   }
 
   // =================================================================
-  // [2] 파싱 로직
+  // [Logic] 파싱 및 가시성 체크
   // =================================================================
   function parseContentStructure() {
     const [h1Sel, h2Sel] = CONFIG.selectors.titles;
@@ -141,10 +162,7 @@ function dynamicNavigator(options = {}) {
     const result = [];
 
     h1List.forEach((h1, idx) => {
-      if (!isVisible(h1)) {
-        // logger(`Skipped hidden Depth 1: "${h1.textContent.trim()}"`);
-        return;
-      }
+      if (!isVisible(h1)) return;
 
       const h1Id = getOrSetNavAttribute(h1, idx + 1, "nav-title");
       const section = {
@@ -202,13 +220,13 @@ function dynamicNavigator(options = {}) {
   }
 
   // =================================================================
-  // [3] 렌더링 로직 (DOM Creation)
+  // [Logic] 렌더링
   // =================================================================
   function renderNavigation(structure) {
     const navEl = document.createElement("nav");
     navEl.className = CONFIG.selectors.nav;
     navEl.setAttribute("role", "navigation");
-    navEl.setAttribute("aria-label", "문서 목차");
+    navEl.setAttribute("aria-label", "목차");
 
     const rootUl = document.createElement("ul");
     rootUl.className = "depth1";
@@ -220,7 +238,6 @@ function dynamicNavigator(options = {}) {
       if (sec.children.length > 0) {
         const subUl = document.createElement("ul");
         subUl.className = "depth2";
-
         const marker = document.createElement("span");
         marker.className = "nav-marker";
         marker.setAttribute("aria-hidden", "true");
@@ -238,7 +255,6 @@ function dynamicNavigator(options = {}) {
 
     navEl.appendChild(rootUl);
     DOM.inner.appendChild(navEl);
-
     DOM.navLinks = navEl.querySelectorAll("button");
     attachScrollbarHandler(navEl);
   }
@@ -250,7 +266,6 @@ function dynamicNavigator(options = {}) {
 
     const span = document.createElement("span");
     span.className = `${data.type}--text`;
-    // innerHTML 대신 textContent 사용 (안전)
     span.textContent = data.text.trim();
 
     btn.appendChild(span);
@@ -260,64 +275,62 @@ function dynamicNavigator(options = {}) {
   }
 
   // =================================================================
-  // [4] 이벤트 감시 및 반응
+  // [Event] 이벤트 감시 및 옵저버
   // =================================================================
+
+  // [수정] onScroll 함수에서 STATE.tick 사용
+  function onScroll() {
+    updateLayoutPosition();
+    if (!STATE.tick) {
+      window.requestAnimationFrame(() => {
+        updateActiveState(false);
+        STATE.tick = false; // [수정]
+      });
+      STATE.tick = true; // [수정]
+    }
+  }
+
+  function onResize() {
+    updateDimensions();
+    updateLayoutPosition();
+    updateActiveState(false);
+  }
+
   function bindEvents() {
-    let tick = false;
-
-    window.addEventListener(
-      "scroll",
-      () => {
-        updateLayoutPosition();
-        if (!tick) {
-          window.requestAnimationFrame(() => {
-            updateActiveState(false);
-            tick = false;
-          });
-          tick = true;
-        }
-      },
-      { passive: true }
-    );
-
-    const handleResize = () => {
-      updateDimensions();
-      updateLayoutPosition();
-      updateActiveState(false);
-    };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
 
     if (DOM.header) {
-      new ResizeObserver(handleResize).observe(DOM.header);
+      STATE.resizeObserver = new ResizeObserver(onResize);
+      STATE.resizeObserver.observe(DOM.header);
     }
   }
 
   function observeContentChanges() {
-    if (!DOM.content) {
-      logger("MutationObserver content area not found. Skipping observation.");
-      return;
-    }
+    if (!DOM.content) return;
 
-    let debounceTimer;
     const observerCallback = (mutations) => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        logger("DOM change detected (MutationObserver). Refreshing...");
+      if (STATE.debounceTimer) clearTimeout(STATE.debounceTimer);
+      STATE.debounceTimer = setTimeout(() => {
+        logger("DOM changed. Refreshing...");
         refreshNavigator();
       }, 200);
     };
 
-    const observer = new MutationObserver(observerCallback);
-    observer.observe(DOM.content, {
+    STATE.observer = new MutationObserver(observerCallback);
+    STATE.observer.observe(DOM.content, {
       childList: true,
       subtree: true,
       attributes: true,
       attributeFilter: ["style", "class", "hidden"],
     });
 
-    logger("MutationObserver started.");
+    logger("Observer started.");
   }
 
+  // =================================================================
+  // [Logic] 위치 계산 및 업데이트
+  // =================================================================
   function updateDimensions() {
     STATE.headerHeight = DOM.header ? DOM.header.offsetHeight : 0;
     STATE.winHeight = window.innerHeight;
@@ -359,23 +372,22 @@ function dynamicNavigator(options = {}) {
   function updateActiveState(isInstant = false) {
     const scrollY =
       window.scrollY + STATE.headerHeight + CONFIG.offset.scrollSpyBuffer;
-
     const scrollBehavior = isInstant ? "auto" : "smooth";
 
+    // 1. Top
     if (window.scrollY <= 0) {
-      if (DOM.navLinks && DOM.navLinks.length > 0) {
+      if (DOM.navLinks && DOM.navLinks.length > 0)
         activateButton(DOM.navLinks[0], isInstant);
-      }
       const navEl = DOM.inner.querySelector(`.${CONFIG.selectors.nav}`);
       if (navEl) navEl.scrollTo({ top: 0, behavior: scrollBehavior });
       return;
     }
 
+    // 2. Bottom
     if (window.scrollY + STATE.winHeight >= STATE.docHeight - 5) {
       if (DOM.navLinks && DOM.navLinks.length > 0) {
         const lastBtn = DOM.navLinks[DOM.navLinks.length - 1];
         activateButton(lastBtn, isInstant);
-
         const navEl = DOM.inner.querySelector(`.${CONFIG.selectors.nav}`);
         if (navEl)
           navEl.scrollTo({ top: navEl.scrollHeight, behavior: scrollBehavior });
@@ -383,6 +395,7 @@ function dynamicNavigator(options = {}) {
       return;
     }
 
+    // 3. Sections
     if (!STATE.sections || STATE.sections.length === 0) return;
 
     for (let i = STATE.sections.length - 1; i >= 0; i--) {
@@ -397,7 +410,7 @@ function dynamicNavigator(options = {}) {
   function handleNavClick(e) {
     const targetBtn = e.currentTarget;
     const targetId = targetBtn.dataset.target;
-    logger(`Clicked: "${targetBtn.textContent.trim()}" (ID: ${targetId})`);
+    logger(`Click: "${targetBtn.textContent.trim()}"`);
 
     const targetElem = document.querySelector(
       `[${CONFIG.attrName}="${targetId}"]`
@@ -408,24 +421,20 @@ function dynamicNavigator(options = {}) {
         targetElem.getBoundingClientRect().top +
         window.scrollY -
         STATE.headerHeight;
-
-      smoothScrollTo(targetTop, () => {
-        targetElem.focus({ preventScroll: true });
-      });
-    } else {
-      logger(`Target element not found: ${targetId}`);
+      smoothScrollTo(targetTop, () =>
+        targetElem.focus({ preventScroll: true })
+      );
     }
   }
 
   // =================================================================
-  // [5] UI 유틸리티
+  // [UI] 유틸리티
   // =================================================================
   function activateButton(targetBtn, isInstant = false) {
     if (!targetBtn || targetBtn.classList.contains(CONFIG.classes.active))
       return;
 
     resetActiveStatus();
-
     targetBtn.classList.add(CONFIG.classes.active);
     targetBtn.setAttribute("aria-current", "true");
 
@@ -489,7 +498,6 @@ function dynamicNavigator(options = {}) {
       if (!startTime) startTime = currentTime;
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-
       const ease =
         progress < 0.5
           ? 2 * progress * progress
