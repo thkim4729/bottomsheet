@@ -1499,7 +1499,7 @@ App-Schema 이슈발생 시 적용 할 수 있는 방법은 아래 두 가지 �
                   <div class="guide_cont_box">
                     <h1 class="h1_title">ISP/페이북 결제연동 참고사항</h1>
                     <h2 class="h2_title">MainActivity 구성</h2>
-                    <ol class="list_num">
+                    <ol class="list_num" style="display: none">
                       <li>
                         인증을 요청할 카드를 선택, 전자금융거래 이용약관 등의
                         동의 이후 ISP를 실행합니다 (*ISP 설치여부 체크 필요)
@@ -1517,7 +1517,7 @@ App-Schema 이슈발생 시 적용 할 수 있는 방법은 아래 두 가지 �
                       전달받을 수 있도록, 결과 수신용 Activity에 아래와 같은
                       intent-filter를 설정합니다.
                     </p>
-                    <div class="pre_area">
+                    <div class="pre_area" style="display: none">
                       <pre>
 &lt;activity
     android:name="com.spg.spgwebviewtest.MainResultActivity"
@@ -1541,7 +1541,7 @@ App-Schema 이슈발생 시 적용 할 수 있는 방법은 아래 두 가지 �
                       TestWebViewClient 소스코드처럼 ISP 결제앱 설정이
                       필요합니다.
                     </p>
-                    <div class="pre_area">
+                    <div class="pre_area" style="display: none">
                       <pre>
 private class TestWebViewClient extents WebViewClient {
     @Override
@@ -1561,7 +1561,7 @@ private class TestWebViewClient extents WebViewClient {
                       모바일 안전결제(ISP/페이북)으로부터 전달받은 URL을 아래와
                       같이 처리합니다.
                     </p>
-                    <div class="pre_area">
+                    <div class="pre_area" style="display: none">
                       <pre>
 // ISP 앱의 콜백(Callback)을 전달받기 위한 앱 스키마
 private final String APP_SCHEME_URL = "spgapptest://";
@@ -1596,7 +1596,7 @@ private void getResultPage(Uri resultUri) {
                                 </pre
                       >
                     </div>
-                    <div class="pre_area">
+                    <div class="pre_area" style="display: none">
                       <pre>
 // ISP 앱의 콜백(Callback)을 전달받기 위한 앱 스키마
 private final String APP_SCHEME_URL = "spgapptest://";
@@ -1631,7 +1631,7 @@ private void getResultPage(Uri resultUri) {
                                 </pre
                       >
                     </div>
-                    <div class="pre_area">
+                    <div class="pre_area" style="display: none">
                       <pre>
 // ISP 앱의 콜백(Callback)을 전달받기 위한 앱 스키마
 private final String APP_SCHEME_URL = "spgapptest://";
@@ -1696,7 +1696,7 @@ private void getResultPage(Uri resultUri) {
         </div>
       </section>
       <div>
-        <div id="footerDev" class="footer_dev">
+        <div id="footerDev" class="footer_dev" style="display: block">
           <div class="inner">
             <div class="f_cont">
               <div class="f_top">

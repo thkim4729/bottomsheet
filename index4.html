@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MutationObserver Transform</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #eee;
+        font-family: sans-serif;
+      }
+
+      /* [1] 헤더 (감시 대상) */
+      #header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #333;
+        color: white;
+        padding: 20px;
+        z-index: 100;
+        text-align: center;
+
+        /* 클래스 변경 테스트용 트랜지션 */
+        transition: height 0.3s;
+      }
+
+      /* 클래스로 높이 제어 테스트 */
+      #header.large {
+        height: 150px;
+      }
+
+      /* [2] 바텀시트 */
+      #sheet {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100vh;
+        background: white;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+        z-index: 50;
+
+        /* 성능 최적화 */
+        will-change: transform;
+        transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+        display: flex;
+        justify-content: center;
+        padding-top: 40px;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header">
+      <h3>Mutation 감시 중</h3>
+      <button onclick="toggleDisplay()">Display: None 토글</button>
+      <button onclick="toggleClass()">클래스 변경 (크기확대)</button>
+    </div>
+
+    <div id="sheet">
+      <div>
+        <h2>바텀시트</h2>
+        <p>
+          헤더의 속성(Style, Class)이 변하면<br />그때 높이를 재서 내려옵니다.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const header = document.getElementById("header");
+      const sheet = document.getElementById("sheet");
+
+      // -----------------------------------------------------------
+      // [1] 바텀시트 위치 업데이트 함수
+      // -----------------------------------------------------------
+      function updateSheetPosition() {
+        // 1. 현재 헤더가 눈에 보이는지 체크 (display: none이면 offsetHeight가 0임)
+        const height = header.offsetHeight;
+
+        // 2. 바텀시트를 헤더 높이만큼 아래로 이동
+        sheet.style.transform = `translate3d(0, ${height}px, 0)`;
+
+        console.log(`[Update] 헤더 높이: ${height}px -> 시트 이동`);
+      }
+
+      // -----------------------------------------------------------
+      // [2] MutationObserver 설정
+      // -----------------------------------------------------------
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          // 스타일이나 클래스가 변했을 때만 로직 실행
+          if (mutation.type === "attributes") {
+            console.log(`[감지] ${mutation.attributeName} 변경됨`);
+            updateSheetPosition();
+          }
+        });
+      });
+
+      // [3] 감시 시작
+      observer.observe(header, {
+        attributes: true, // 속성 변화 감시
+        attributeFilter: ["style", "class"], // style과 class 속성만 보겠다 (최적화)
+      });
+
+      // 초기 실행 (처음 로딩 시 위치 잡기)
+      updateSheetPosition();
+
+      // --- (테스트 함수들) ---
+      function toggleDisplay() {
+        // style 속성이 변하므로 감지됨 O
+        header.style.display =
+          header.style.display === "none" ? "block" : "none";
+      }
+
+      function toggleClass() {
+        // class 속성이 변하므로 감지됨 O
+        header.classList.toggle("large");
+      }
+    </script>
+  </body>
+</html>
