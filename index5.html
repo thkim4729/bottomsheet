@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Date Picker with Validation</title>
+    <link rel="stylesheet" href="datepicker.css" />
+    <script src="datepicker.js" defer></script>
+  </head>
+  <body>
+    <div class="container" style="padding: 20px; width: 100%; max-width: 400px">
+      <h3 style="margin-bottom: 10px">여행 시작일</h3>
+
+      <div class="input-group">
+        <div class="picker-wrapper">
+          <input
+            type="text"
+            class="picker-input"
+            placeholder="날짜를 선택하세요 (예: 20240520)"
+            readonly
+          />
+          <div class="picker-icon-btn">📅</div>
+        </div>
+        <p class="error-text">올바른 날짜 형식이 아닙니다. (예: 20240520)</p>
+      </div>
+
+      <br /><br />
+
+      <h3 style="margin-bottom: 10px">여행 종료일</h3>
+
+      <div class="input-group">
+        <div class="picker-wrapper">
+          <input
+            type="text"
+            class="picker-input"
+            placeholder="날짜를 선택하세요"
+            readonly
+          />
+          <div class="picker-icon-btn">📅</div>
+        </div>
+        <p class="error-text">올바른 날짜 형식이 아닙니다. (예: 20240520)</p>
+      </div>
+    </div>
+
+    <div class="picker-overlay"></div>
+
+    <div class="bottom-sheet">
+      <div class="sheet-header">
+        <button class="btn-close">취소</button>
+        <button class="btn-done">완료</button>
+      </div>
+
+      <div class="picker-area">
+        <div class="highlight-bar"></div>
+
+        <div class="wheel-col year-col">
+          <ul class="wheel-list"></ul>
+        </div>
+
+        <div class="wheel-col month-col">
+          <ul class="wheel-list"></ul>
+        </div>
+
+        <div class="wheel-col day-col">
+          <ul class="wheel-list"></ul>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
