@@ -1,4 +1,4 @@
-/* 기본 설정 */
+/* 기본 리셋 및 레이아웃 */
 body {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -10,7 +10,7 @@ body {
   background-color: #f2f2f7;
 }
 
-/* Input Group */
+/* --- 입력창(Input) 스타일 --- */
 .input-group {
   width: 100%;
   max-width: 320px;
@@ -31,23 +31,23 @@ body {
   cursor: pointer;
 }
 
-/* 에러 상태 스타일 */
+/* 에러 발생 시 스타일 (빨간 테두리) */
 .picker-wrapper.input-error {
   border-color: #ff3b30;
   background-color: #fff2f2;
 }
 
+/* 에러 메시지 텍스트 */
 .error-text {
   color: #ff3b30;
   font-size: 13px;
   margin-top: 6px;
   margin-left: 4px;
-  display: none;
+  display: none; /* 기본 숨김 */
   opacity: 0;
   transform: translateY(-5px);
   transition: all 0.2s;
 }
-
 .error-text.show {
   display: block;
   opacity: 1;
@@ -72,7 +72,7 @@ body {
   user-select: none;
 }
 
-/* 바텀 시트 & 오버레이 */
+/* --- 바텀 시트(Bottom Sheet) 스타일 --- */
 .picker-overlay {
   position: fixed;
   top: 0;
@@ -107,6 +107,7 @@ body {
   bottom: 0;
 }
 
+/* 헤더 (취소/완료 버튼) */
 .sheet-header {
   display: flex;
   justify-content: space-between;
@@ -130,14 +131,15 @@ body {
   font-weight: 600;
 }
 
-/* 3D Picker Area (40px 기준 복구) */
+/* --- 3D 휠 피커 영역 (핵심 스타일) --- */
 .picker-area {
   position: relative;
-  height: 220px; /* 40px * 5.5 */
+  height: 220px; /* 컨테이너 높이 고정 */
   display: flex;
   justify-content: center;
   overflow: hidden;
-  perspective: 1000px; /* 3D 효과 */
+  perspective: 1000px; /* 3D 효과를 위한 원근감 */
+  /* 상하단 페이드 아웃 마스크 */
   mask-image: linear-gradient(
     to bottom,
     transparent,
@@ -159,7 +161,7 @@ body {
   top: 50%;
   left: 0;
   width: 100%;
-  height: 40px; /* 높이 40px 복구 */
+  height: 40px; /* 아이템 높이와 동일 */
   margin-top: -20px;
   background: #f0f0f0;
   z-index: -1;
@@ -170,6 +172,7 @@ body {
   flex: 1;
   height: 100%;
   overflow-y: scroll;
+  /* 스크롤 스냅 (딱딱 멈추는 효과) */
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
 }
@@ -184,19 +187,18 @@ body {
   text-align: center;
 }
 
-/* datepicker.css의 .wheel-item 부분 수정 */
-
+/* 개별 아이템 스타일 */
 .wheel-item {
-  height: 40px;
+  height: 40px; /* 아이템 높이 고정 */
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 17px;
   color: #999;
-  scroll-snap-align: center;
+  scroll-snap-align: center; /* 중앙 정렬 스냅 */
   cursor: pointer;
 
-  /* [최적화] 변경될 속성을 브라우저에 미리 알려줌 */
+  /* [성능 최적화] 브라우저에게 변형을 미리 알려줌 */
   will-change: transform, opacity;
 
   transition:
@@ -204,6 +206,7 @@ body {
     opacity 0.1s ease-out,
     color 0.1s;
 
+  /* 3D 변환 적용 */
   transform: rotateX(calc(var(--angle, 0) * 1deg))
     translateZ(calc(var(--offset, 0) * 1px));
   opacity: var(--opacity, 0.3);
