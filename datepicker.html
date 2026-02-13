@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Multi-Input Date Picker</title>
+    <title>Ultimate 3D Date Picker</title>
     <link rel="stylesheet" href="datepicker.css" />
     <script src="datepicker.js" defer></script>
   </head>
@@ -12,79 +12,74 @@
       class="container"
       style="padding: 20px; width: 100%; max-width: 500px; margin: 0 auto"
     >
-      <h3 style="margin-bottom: 10px">여행 출발일 (단일)</h3>
+      <h3 style="margin-bottom: 10px">여행 시작일</h3>
+
       <div class="input-group js-date-picker" data-close-on-enter="true">
         <div class="picker-wrapper">
           <input
             type="text"
             class="picker-input"
-            placeholder="출발일 선택"
+            placeholder="날짜 선택 (예: 20240520)"
             readonly
           />
           <button
             type="button"
             class="picker-icon-btn"
-            aria-label="출발일 선택"
+            aria-label="여행 시작일 선택"
           >
             📅
           </button>
         </div>
-        <p class="error-text">날짜를 확인해주세요.</p>
+        <p class="error-text">올바른 날짜 형식이 아닙니다.</p>
       </div>
 
       <br /><br />
 
-      <h3 style="margin-bottom: 10px">숙박 기간 (다중 인풋)</h3>
+      <h3 style="margin-bottom: 10px">숙박 기간</h3>
 
       <div
         class="input-group js-date-picker"
         data-min-year="2024"
-        data-max-year="2026"
-        style="flex-direction: row; gap: 10px; align-items: flex-start"
+        data-max-year="2030"
       >
-        <div style="flex: 1">
-          <div class="picker-wrapper">
-            <input
-              type="text"
-              class="picker-input"
-              placeholder="체크인"
-              readonly
-            />
-            <button
-              type="button"
-              class="picker-icon-btn"
-              aria-label="체크인 선택"
-            >
-              📅
-            </button>
-          </div>
+        <div class="picker-wrapper">
+          <input
+            type="text"
+            class="picker-input"
+            placeholder="체크인"
+            readonly
+          />
+          <button
+            type="button"
+            class="picker-icon-btn"
+            aria-label="체크인 날짜 선택"
+          >
+            📅
+          </button>
         </div>
 
-        <span style="padding-top: 10px">~</span>
-
-        <div style="flex: 1">
-          <div class="picker-wrapper">
-            <input
-              type="text"
-              class="picker-input"
-              placeholder="체크아웃"
-              readonly
-            />
-            <button
-              type="button"
-              class="picker-icon-btn"
-              aria-label="체크아웃 선택"
-            >
-              📅
-            </button>
-          </div>
+        <div class="picker-wrapper">
+          <input
+            type="text"
+            class="picker-input"
+            placeholder="체크아웃"
+            readonly
+          />
+          <button
+            type="button"
+            class="picker-icon-btn"
+            aria-label="체크아웃 날짜 선택"
+          >
+            📅
+          </button>
         </div>
 
-        <p class="error-text" style="width: 100%">유효하지 않은 날짜입니다.</p>
+        <p class="error-text">유효하지 않은 기간입니다.</p>
       </div>
     </div>
 
     <div class="picker-overlay"></div>
+
     <div
       class="bottom-sheet"
       role="dialog"
@@ -95,11 +90,21 @@
         <button class="btn-close">취소</button>
         <button class="btn-done">완료</button>
       </div>
+
       <div class="picker-area">
         <div class="highlight-bar"></div>
-        <div class="wheel-col year-col"><ul class="wheel-list"></ul></div>
-        <div class="wheel-col month-col"><ul class="wheel-list"></ul></div>
-        <div class="wheel-col day-col"><ul class="wheel-list"></ul></div>
+
+        <div class="wheel-col year-col">
+          <ul class="wheel-list"></ul>
+        </div>
+
+        <div class="wheel-col month-col">
+          <ul class="wheel-list"></ul>
+        </div>
+
+        <div class="wheel-col day-col">
+          <ul class="wheel-list"></ul>
+        </div>
       </div>
     </div>
   </body>

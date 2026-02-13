@@ -1,5 +1,5 @@
 /* =========================================
-   1. 기본 레이아웃 & 리셋
+   1. 기본 설정
    ========================================= */
 *,
 *::before,
@@ -25,10 +25,10 @@ body {
 .input-group {
   position: relative;
   display: flex;
-  flex-wrap: wrap; /* 에러 메시지 줄바꿈용 */
-  align-items: flex-start;
+  flex-wrap: wrap; /* 내용 넘치면 줄바꿈 (에러 메시지 하단 배치용) */
+  align-items: center;
   width: 100%;
-  gap: 10px;
+  gap: 10px; /* 인풋 사이 간격 */
   margin-bottom: 5px;
 }
 
@@ -36,18 +36,15 @@ body {
    3. 피커 래퍼 (Wrapper)
    ========================================= */
 .picker-wrapper {
-  flex: 1; /* 남은 공간 꽉 채움 */
+  flex: 1; /* 남은 공간을 꽉 채움 */
   min-width: 140px;
-
   background: white;
   border: 1px solid #c7c7cc;
   border-radius: 10px;
   padding: 10px 14px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   transition: all 0.2s ease;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -57,30 +54,25 @@ body {
   border-color: #007aff;
 }
 
+/* 에러 발생 시 스타일 */
 .picker-wrapper.input-error {
   border-color: #ff3b30;
   background-color: #fff5f5;
 }
 
 /* =========================================
-   4. 인풋 & 아이콘
+   4. 인풋 & 버튼
    ========================================= */
 .picker-input {
   flex: 1;
   border: none;
   outline: none;
   font-size: 16px;
-  color: #000;
-  background: transparent;
-  font-family: inherit;
-  cursor: inherit;
   width: 100%;
+  background: transparent;
+  cursor: inherit;
   padding: 0;
   margin: 0;
-}
-
-.picker-input::placeholder {
-  color: #8e8e93;
 }
 
 .picker-icon-btn {
@@ -92,7 +84,6 @@ body {
   margin-left: 8px;
   cursor: pointer;
   user-select: none;
-  line-height: 1;
   color: #007aff;
   display: flex;
   align-items: center;
@@ -102,23 +93,19 @@ body {
    5. 에러 메시지
    ========================================= */
 .error-text {
-  width: 100%;
+  width: 100%; /* 한 줄 전체 차지 -> 무조건 맨 아래로 */
   color: #ff3b30;
   font-size: 13px;
-  font-weight: 400;
   margin-top: 4px;
   margin-left: 4px;
-
   display: none;
   opacity: 0;
   transform: translateY(-5px);
   transition:
     opacity 0.2s,
     transform 0.2s;
-
-  order: 999; /* 무조건 맨 아래로 */
+  order: 999; /* Flex 순서상 맨 뒤 */
 }
-
 .error-text.show {
   display: block;
   opacity: 1;
@@ -126,7 +113,7 @@ body {
 }
 
 /* =========================================
-   6. 바텀 시트 (Bottom Sheet) - 오버레이
+   6. 바텀 시트 (Bottom Sheet)
    ========================================= */
 .picker-overlay {
   position: fixed;
@@ -146,19 +133,11 @@ body {
   visibility: visible;
 }
 
-/* =========================================
-   7. 바텀 시트 (Bottom Sheet) - 본체
-   ========================================= */
 .bottom-sheet {
   position: fixed;
   bottom: -100%;
   left: 0;
-
-  /* [수정됨] 무조건 너비 100% 꽉 차게 설정 */
-  width: 100%;
-  max-width: none; /* 제한 해제 */
-  transform: none; /* 중앙 정렬 해제 */
-
+  width: 100%; /* 화면 꽉 차게 */
   background: white;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
@@ -167,12 +146,10 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.1);
 }
-
 .bottom-sheet.is-active {
   bottom: 0;
 }
 
-/* 헤더 */
 .sheet-header {
   display: flex;
   justify-content: space-between;
@@ -183,7 +160,6 @@ body {
   border-bottom: 1px solid #e5e5ea;
   border-radius: 20px 20px 0 0;
 }
-
 .sheet-header button {
   border: none;
   background: none;
@@ -200,7 +176,7 @@ body {
 }
 
 /* =========================================
-   8. 3D 휠 피커 영역
+   7. 3D 휠 피커 영역
    ========================================= */
 .picker-area {
   position: relative;
@@ -226,7 +202,6 @@ body {
   );
 }
 
-/* 하이라이트 바 */
 .highlight-bar {
   position: absolute;
   top: 50%;
@@ -239,7 +214,6 @@ body {
   pointer-events: none;
 }
 
-/* 컬럼 */
 .wheel-col {
   flex: 1;
   height: 100%;
@@ -253,20 +227,28 @@ body {
   display: none;
 }
 
-/* 리스트 */
+/* [수정] 접근성: 포커스가 리스트(ul)가 아닌 컨테이너(div)에 잡힘 */
+.wheel-col:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #007aff;
+  background-color: rgba(0, 122, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* [수정] height를 auto로 변경하여 패딩만큼 스크롤이 늘어나게 함 */
 .wheel-list {
   list-style: none;
   padding: 0;
   margin: 0;
   text-align: center;
   width: 100%;
+
+  /* height: 100%;  <-- 이걸 지우세요 */
+  height: auto; /* <-- 이렇게 변경하세요 (내용물 + 패딩 크기만큼 늘어남) */
+
+  display: block;
 }
 
-.wheel-list:focus {
-  outline: none;
-}
-
-/* 아이템 */
 .wheel-item {
   height: 40px;
   display: flex;
