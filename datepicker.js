@@ -1,7 +1,8 @@
 /**
- * [Library] Ultimate Date Picker (Final A11y Optimized)
- * - 메시지 큐 로직: 월/일 동시 변경 시 음성 안내가 겹치지 않도록 지연 안내 처리
- * - 톡백/보이스오버 대응 최적화 완료
+ * [Library] Ultimate Date Picker (Capsule & Service Oriented)
+ * 성능 최적화: requestAnimationFrame 적용 (크롬 110 버벅임 해결)
+ * 접근성 최적화: 휠 조작 시 해당 요소만 안내, 자동 조정 시 음성 중첩 방지
+ * UX 최적화: 인풋 복귀 시 모바일 키패드 팝업 차단
  */
 document.addEventListener("DOMContentLoaded", initDatePicker);
 
@@ -12,11 +13,11 @@ function initDatePicker() {
   const CONFIG = {
     minYear: new Date().getFullYear() - 50,
     maxYear: new Date().getFullYear() + 50,
-    manualInput: true, // 직접 입력 허용 여부
+    manualInput: true, // true: 직접 입력 가능 / false: readonly
     showDayOfWeek: true, // 요일 표시 여부
     blockWeekends: false, // 주말 차단 여부
     blockHolidays: false, // 공휴일 차단 여부
-    autoDayAdjust: true, // 월별 일수 자동 조정 (2월 28일 등)
+    autoDayAdjust: true, // 월별 일수 자동 조정 (중요)
     enterToSelect: true, // Enter 키 완료 여부
     useMockData: true, // 가짜 데이터 사용 모드
 
@@ -36,13 +37,11 @@ function initDatePicker() {
       yearAriaLabel: "연도를 선택해주세요",
       monthAriaLabel: "월을 선택해주세요",
       dayAriaLabel: "일을 선택해주세요",
-      // [신규] 일수 자동 조정 시 안내 텍스트
-      dayAdjustNotice: "월이 변경되어 일이 {d}일로 조정되었습니다.",
     },
   };
 
   // ============================================================
-  // 2. [API 서비스 레이어] 캡슐화된 통신 로직
+  // 2. [API 서비스 레이어]
   // ============================================================
   const ApiService = {
     cache: {},
@@ -50,7 +49,7 @@ function initDatePicker() {
       if (this.cache[year]) return this.cache[year];
       if (CONFIG.useMockData) {
         await new Promise((r) => setTimeout(r, 200));
-        const mock = [
+        this.cache[year] = [
           "01-01",
           "03-01",
           "05-05",
@@ -60,8 +59,7 @@ function initDatePicker() {
           "10-09",
           "12-25",
         ];
-        this.cache[year] = mock;
-        return mock;
+        return this.cache[year];
       }
       return [];
     },
@@ -76,10 +74,6 @@ function initDatePicker() {
     lastFocusedElement: null,
     isTicking: false,
     liveRegion: null,
-    /**
-     * [announcementTimer] 메시지 충돌 방지용 타이머
-     * - 여러 공지가 겹칠 때 앞의 공지를 보장하거나 순차적으로 안내하기 위해 사용합니다.
-     */
     announcementTimer: null,
   };
 
@@ -124,20 +118,19 @@ function initDatePicker() {
     ui.cols.month = document.querySelector(".month-col");
     ui.cols.day = document.querySelector(".day-col");
 
+    const labels = [
+      CONFIG.locale.yearAriaLabel,
+      CONFIG.locale.monthAriaLabel,
+      CONFIG.locale.dayAriaLabel,
+    ];
     [ui.cols.year, ui.cols.month, ui.cols.day].forEach((col, i) => {
       if (col) {
         col.setAttribute("tabindex", "0");
         col.setAttribute("role", "listbox");
-        const labels = [
-          CONFIG.locale.yearAriaLabel,
-          CONFIG.locale.monthAriaLabel,
-          CONFIG.locale.dayAriaLabel,
-        ];
         col.setAttribute("aria-label", labels[i]);
       }
     });
 
-    // 스크린리더 공지 영역
     state.liveRegion = document.createElement("div");
     state.liveRegion.className = "sr-only";
     state.liveRegion.setAttribute("aria-live", "polite");
@@ -150,19 +143,16 @@ function initDatePicker() {
   }
 
   /**
-   * [speak] 메시지를 지연 안내하거나 즉시 안내하는 헬퍼 함수
-   * @param {string} msg - 안내할 문구
-   * @param {number} delay - 지연 시간 (ms)
+   * [speak] 스크린리더 공지 함수
    */
-  function speak(msg, delay = 0) {
+  function speak(msg) {
     if (state.announcementTimer) clearTimeout(state.announcementTimer);
-
     state.announcementTimer = setTimeout(() => {
       if (state.liveRegion) {
-        state.liveRegion.textContent = ""; // 초기화하여 동일 문구 재인식 보장
+        state.liveRegion.textContent = "";
         state.liveRegion.textContent = msg;
       }
-    }, delay);
+    }, 50);
   }
 
   // ============================================================
@@ -211,14 +201,20 @@ function initDatePicker() {
   function closeSheet() {
     ui.overlay.classList.remove("is-active");
     ui.sheet.classList.remove("is-active");
+
     if (state.lastFocusedElement) {
       const input = state.lastFocusedElement;
+
+      /**
+       * [키패드 방지] 인풋에 포커스를 주되 키패드가 올라오지 않게 함
+       */
       const originalReadOnly = input.readOnly;
       input.readOnly = true;
       input.focus();
       setTimeout(() => {
         input.readOnly = originalReadOnly;
       }, 100);
+
       state.lastFocusedElement = null;
     }
   }
@@ -239,7 +235,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 5. 휠 렌더링 및 공지 로직 (핵심 수정)
+  // 5. 휠 렌더링 및 음성 중복 방지 로직
   // ============================================================
   function renderWheel(col, min, max, current, label) {
     const ul = col.querySelector(".wheel-list");
@@ -280,6 +276,7 @@ function initDatePicker() {
         () => {
           update3D(col);
           clearTimeout(state.scrollTimer);
+          // 스크롤이 끝난 컬럼 정보를 인자로 전달
           state.scrollTimer = setTimeout(() => onScrollEnd(col), 150);
         },
         { passive: true },
@@ -287,6 +284,12 @@ function initDatePicker() {
       col.dataset.hasScroll = "true";
     }
 
+    if (!col.dataset.hasKeyboard) {
+      col.addEventListener("keydown", (e) => handleWheelKeyboard(e, col));
+      col.dataset.hasKeyboard = "true";
+    }
+
+    // 초기 위치 잡기
     setTimeout(() => {
       const target = ul.querySelector(".selected");
       if (target) {
@@ -297,51 +300,55 @@ function initDatePicker() {
   }
 
   /**
-   * [onScrollEnd] 스크롤 정착 시 실행
-   * - 연쇄적으로 일어나는 공지를 시간차를 두고 실행합니다.
+   * [onScrollEnd] 스크롤이 정착한 해당 컬럼의 값만 읽어줍니다.
    */
-  async function onScrollEnd(col) {
-    const y = getWheelValue(ui.cols.year),
-      m = getWheelValue(ui.cols.month),
-      d = getWheelValue(ui.cols.day);
-    const currentValue = getWheelValue(col);
+  async function onScrollEnd(activeCol) {
+    // 만약 현재 컬럼에 '공지 차단' 플래그가 있다면 읽지 않고 종료
+    if (activeCol.dataset.preventAnnouncement === "true") return;
 
-    if (!currentValue) return;
+    const y = getWheelValue(ui.cols.year);
+    const m = getWheelValue(ui.cols.month);
+    const d = getWheelValue(ui.cols.day);
 
-    let suffix = "";
-    if (col === ui.cols.year) suffix = CONFIG.locale.yearSuffix;
-    else if (col === ui.cols.month) suffix = CONFIG.locale.monthSuffix;
-    else if (col === ui.cols.day) suffix = CONFIG.locale.daySuffix;
+    const currentValue = getWheelValue(activeCol);
+    if (currentValue) {
+      let suffix = "";
+      if (activeCol === ui.cols.year) suffix = CONFIG.locale.yearSuffix;
+      else if (activeCol === ui.cols.month) suffix = CONFIG.locale.monthSuffix;
+      else if (activeCol === ui.cols.day) suffix = CONFIG.locale.daySuffix;
 
-    const mainMsg = `${currentValue}${suffix}가 선택되었습니다.`;
+      // [요청 반영] "N월이 선택되었습니다" 형식 유지
+      speak(`${currentValue}${suffix}이 선택되었습니다.`);
+    }
 
-    // 1. 공통 안내 실행 (즉시)
-    speak(mainMsg, 50);
-
-    // 2. 부가 기능 (공휴일 로드)
     if (CONFIG.blockHolidays && y) await ApiService.fetchHolidays(y);
 
-    // 3. 월 선택 시 일수 조정 체크 (핵심 로직)
-    if (CONFIG.autoDayAdjust && y && m && col !== ui.cols.day) {
+    // 월 변경 시 일수 자동 조정 로직
+    if (CONFIG.autoDayAdjust && y && m && activeCol !== ui.cols.day) {
       const max = new Date(y, m, 0).getDate();
-      const currentDayCount = ui.cols.day.querySelectorAll("li").length;
+      const dayCol = ui.cols.day;
+      const currentDayItems = dayCol.querySelectorAll("li").length;
 
-      if (max !== currentDayCount) {
-        const adjustedDay = d > max ? max : d;
-        renderWheel(ui.cols.day, 1, max, adjustedDay, CONFIG.locale.daySuffix);
+      if (max !== currentDayItems) {
+        /**
+         * [핵심] 일수 휠이 재생성될 때 발생하는 자동 스크롤로 인해
+         * '일' 정보가 읽히는 것을 방지하기 위해 플래그를 세웁니다.
+         */
+        dayCol.dataset.preventAnnouncement = "true";
 
-        // [핵심] 일수가 실제로 조정되었다면, 월 안내가 끝난 뒤(약 700ms) 추가 안내를 합니다.
-        if (d > max) {
-          const notice = CONFIG.locale.dayAdjustNotice.replace(
-            "{d}",
-            adjustedDay,
-          );
-          speak(notice, 800);
-        }
+        renderWheel(dayCol, 1, max, d > max ? max : d, CONFIG.locale.daySuffix);
+
+        // 휠 재생성 및 위치 이동이 완료될 즈음 플래그를 해제합니다.
+        setTimeout(() => {
+          dayCol.dataset.preventAnnouncement = "false";
+        }, 300);
       }
     }
   }
 
+  /**
+   * [update3D] rAF를 사용하여 버벅임 방지
+   */
   function update3D(col) {
     if (state.isTicking) return;
     state.isTicking = true;
@@ -372,7 +379,22 @@ function initDatePicker() {
     });
   }
 
-  // 기타 유틸리티 (이전과 동일)
+  // ============================================================
+  // 6. 유틸리티 (이전 로직 동일)
+  // ============================================================
+  function handleWheelKeyboard(e, col) {
+    const h = 40;
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      col.scrollBy({ top: -h, behavior: "smooth" });
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      col.scrollBy({ top: h, behavior: "smooth" });
+    } else if (e.key === "Enter" && CONFIG.enterToSelect) {
+      e.preventDefault();
+      confirmSelection();
+    }
+  }
   function formatDateString(y, m, d) {
     let str = `${y}년 ${String(m).padStart(2, "0")}월 ${String(d).padStart(2, "0")}일`;
     if (CONFIG.showDayOfWeek)
@@ -414,6 +436,18 @@ function initDatePicker() {
       }
     }
     if (input.value.trim() !== "") showError(container);
+  }
+  function isDateBlocked(y, m, d) {
+    if (!y || !m || !d) return false;
+    const date = new Date(y, m - 1, d);
+    if (CONFIG.blockWeekends && (date.getDay() === 0 || date.getDay() === 6))
+      return true;
+    if (CONFIG.blockHolidays) {
+      const list = ApiService.cache[y];
+      const mmdd = `${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      if (list && list.includes(mmdd)) return true;
+    }
+    return false;
   }
   function showError(c) {
     c?.querySelector(".error-text")?.classList.add("show");
