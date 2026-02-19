@@ -1,5 +1,6 @@
 /**
- * [The Complete Master] Ultimate Date Picker
+ * [The Perfect Master] Ultimate Date Picker
+ * - 클릭 이동: 선택되지 않은 항목 클릭 시 중앙으로 부드럽게 이동 및 선택
  * - 포커스 제어: 시트 오픈 시 즉시 진입 & 내부 포커스 트랩(순환) 작동
  * - 초기 상태: 시트 오픈 시 즉시 .selected 클래스 반영 및 위치 고정
  * - 톡백 최적화: 좌우(박스 점프), 위아래(값 증감 - spinbutton 역할)
@@ -15,10 +16,10 @@ function initDatePicker() {
   const CONFIG = {
     minYear: new Date().getFullYear() - 50,
     maxYear: new Date().getFullYear() + 50,
-    manualInput: true, // 직접 입력 허용 여부
-    showDayOfWeek: true, // 요일 표시 여부
-    autoDayAdjust: true, // 월별 일수 자동 조정
-    enterToSelect: true, // 휠에서 Enter 완료 여부
+    manualInput: true,
+    showDayOfWeek: true,
+    autoDayAdjust: true,
+    enterToSelect: true,
     useMockData: true,
 
     locale: {
@@ -86,7 +87,6 @@ function initDatePicker() {
     ui.cols.month = document.querySelector(".month-col");
     ui.cols.day = document.querySelector(".day-col");
 
-    // [A11y] 박스 단위 탐색 및 위아래 값 조절 설정 (spinbutton)
     [ui.cols.year, ui.cols.month, ui.cols.day].forEach((col, i) => {
       if (col) {
         col.setAttribute("tabindex", "0");
@@ -121,7 +121,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 4. 시트 제어 (포커스 트랩 & 키패드 방지 핵심)
+  // 4. 시트 제어 (포커스 트랩 & 키패드 방지)
   // ============================================================
   async function openSheet(input, container) {
     state.lastFocusedElement = input;
@@ -149,13 +149,11 @@ function initDatePicker() {
       CONFIG.locale.daySuffix,
     );
 
-    // [포커스 제어] 시트 활성화 및 트랩 이벤트 연결
     ui.sheet.setAttribute("tabindex", "-1");
     ui.sheet.classList.add("is-active");
     ui.overlay.classList.add("is-active");
     ui.sheet.addEventListener("keydown", trapFocus);
 
-    // 열리자마자 시트 내부로 포커스 강제 이동
     setTimeout(() => {
       ui.sheet.focus();
     }, 100);
@@ -165,12 +163,12 @@ function initDatePicker() {
     ui.overlay.classList.remove("is-active");
     ui.sheet.classList.remove("is-active");
     ui.sheet.removeAttribute("tabindex");
-    ui.sheet.removeEventListener("keydown", trapFocus); // 트랩 해제
+    ui.sheet.removeEventListener("keydown", trapFocus);
 
     if (state.lastFocusedElement) {
       const input = state.lastFocusedElement;
       const originalReadOnly = input.readOnly;
-      input.readOnly = true; // 키패드 방지
+      input.readOnly = true;
       input.focus();
       setTimeout(() => {
         input.readOnly = originalReadOnly;
@@ -179,9 +177,6 @@ function initDatePicker() {
     }
   }
 
-  /**
-   * [trapFocus] 바텀시트 내부에서만 포커스가 순환되게 하는 로직
-   */
   function trapFocus(e) {
     if (e.key !== "Tab") return;
     const focusables = ui.sheet.querySelectorAll('button, [tabindex="0"]');
@@ -189,13 +184,11 @@ function initDatePicker() {
     const last = focusables[focusables.length - 1];
 
     if (e.shiftKey) {
-      // Shift + Tab
       if (document.activeElement === first) {
         e.preventDefault();
         last.focus();
       }
     } else {
-      // Tab
       if (document.activeElement === last) {
         e.preventDefault();
         first.focus();
@@ -204,7 +197,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 5. 휠 렌더링 및 음성 공지
+  // 5. 휠 렌더링 (클릭 이동 로직 포함)
   // ============================================================
   function renderWheel(col, min, max, current, label) {
     const ul = col.querySelector(".wheel-list");
@@ -220,12 +213,21 @@ function initDatePicker() {
       li.textContent = i + label;
       li.setAttribute("data-val", i);
 
-      // [보정] 즉시 selected 부여
       if (i === current) {
         li.classList.add("selected");
         li.setAttribute("aria-selected", "true");
         targetItem = li;
       }
+
+      /**
+       * [항목 클릭 이벤트]
+       * 선택되지 않은 항목을 클릭해도 해당 위치로 부드럽게 스크롤합니다.
+       * 스크롤이 발생하면 update3D가 실행되어 selected 클래스가 갱신됩니다.
+       */
+      li.addEventListener("click", () => {
+        li.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+
       fragment.appendChild(li);
     }
     ul.appendChild(fragment);
@@ -248,7 +250,6 @@ function initDatePicker() {
       col.dataset.hasKeyboard = "true";
     }
 
-    // [보정] 위치 고정 및 3D 업데이트
     if (targetItem) {
       setTimeout(() => {
         col.scrollTop =
@@ -291,7 +292,7 @@ function initDatePicker() {
         if (dist < 20) {
           item.classList.add("selected");
           item.setAttribute("aria-selected", "true");
-          col.setAttribute("aria-valuetext", item.textContent); // spinbutton 현재값
+          col.setAttribute("aria-valuetext", item.textContent);
         } else {
           item.classList.remove("selected");
         }
@@ -336,6 +337,9 @@ function initDatePicker() {
     }
   }
 
+  // ============================================================
+  // 6. 유틸리티
+  // ============================================================
   function getWheelValue(col) {
     const center = col.scrollTop + col.offsetHeight / 2;
     let closest = null,
