@@ -1,6 +1,17 @@
 /* =========================================
-   1. 기본 설정
+   1. 테마 및 설정 변수
    ========================================= */
+:root {
+  --picker-color: #007aff; /* 기본 브랜드 색상 */
+  --picker-height: 220px; /* 바텀시트 휠 영역 높이 */
+  --item-height: 40px; /* 각 날짜 항목의 높이 */
+}
+
+/* 주황색 테마 클래스 (HTML에서 자유롭게 추가/삭제 가능) */
+.theme-orange {
+  --picker-color: #ff5733;
+}
+
 *,
 *::before,
 *::after {
@@ -9,8 +20,7 @@
 
 body {
   font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -20,23 +30,28 @@ body {
 }
 
 /* =========================================
-   2. 입력 그룹 (Input Group)
+   2. 입력 그룹 및 에러 스타일
    ========================================= */
+.container {
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+}
+.title {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
 .input-group {
   position: relative;
   display: flex;
-  flex-wrap: wrap; /* 내용 넘치면 줄바꿈 (에러 메시지 하단 배치용) */
-  align-items: center;
+  flex-wrap: wrap;
   width: 100%;
-  gap: 10px; /* 인풋 사이 간격 */
+  gap: 10px;
   margin-bottom: 5px;
 }
 
-/* =========================================
-   3. 피커 래퍼 (Wrapper)
-   ========================================= */
 .picker-wrapper {
-  flex: 1; /* 남은 공간을 꽉 채움 */
+  flex: 1;
   min-width: 140px;
   background: white;
   border: 1px solid #c7c7cc;
@@ -47,22 +62,15 @@ body {
   align-items: center;
   transition: all 0.2s ease;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-
 .picker-wrapper:hover {
-  border-color: #007aff;
+  border-color: var(--picker-color);
 }
-
-/* 에러 발생 시 스타일 */
 .picker-wrapper.input-error {
   border-color: #ff3b30;
   background-color: #fff5f5;
 }
 
-/* =========================================
-   4. 인풋 & 버튼
-   ========================================= */
 .picker-input {
   flex: 1;
   border: none;
@@ -71,40 +79,26 @@ body {
   width: 100%;
   background: transparent;
   cursor: inherit;
-  padding: 0;
-  margin: 0;
 }
-
 .picker-icon-btn {
   background: transparent;
   border: none;
   font-size: 1.1rem;
-  padding: 4px;
-  padding-right: 0;
-  margin-left: 8px;
   cursor: pointer;
-  user-select: none;
-  color: #007aff;
+  color: var(--picker-color);
   display: flex;
   align-items: center;
 }
 
-/* =========================================
-   5. 에러 메시지
-   ========================================= */
 .error-text {
-  width: 100%; /* 한 줄 전체 차지 -> 무조건 맨 아래로 */
+  width: 100%;
   color: #ff3b30;
   font-size: 13px;
   margin-top: 4px;
-  margin-left: 4px;
   display: none;
   opacity: 0;
   transform: translateY(-5px);
-  transition:
-    opacity 0.2s,
-    transform 0.2s;
-  order: 999; /* Flex 순서상 맨 뒤 */
+  transition: all 0.2s;
 }
 .error-text.show {
   display: block;
@@ -113,7 +107,7 @@ body {
 }
 
 /* =========================================
-   6. 바텀 시트 (Bottom Sheet)
+   3. 바텀 시트 및 휠 레이아웃
    ========================================= */
 .picker-overlay {
   position: fixed;
@@ -137,17 +131,19 @@ body {
   position: fixed;
   bottom: -100%;
   left: 0;
-  width: 100%; /* 화면 꽉 차게 */
+  width: 100%;
   background: white;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   transition: bottom 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   z-index: 9999;
   padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.1);
 }
 .bottom-sheet.is-active {
   bottom: 0;
+}
+.bottom-sheet:focus {
+  outline: none;
 }
 
 .sheet-header {
@@ -167,20 +163,14 @@ body {
   cursor: pointer;
   padding: 10px;
 }
-.btn-close {
-  color: #8e8e93;
-}
 .btn-done {
-  color: #007aff;
+  color: var(--picker-color);
   font-weight: 600;
 }
 
-/* =========================================
-   7. 3D 휠 피커 영역
-   ========================================= */
 .picker-area {
   position: relative;
-  height: 220px;
+  height: var(--picker-height);
   display: flex;
   justify-content: center;
   background: #fff;
@@ -207,8 +197,8 @@ body {
   top: 50%;
   left: 0;
   width: 100%;
-  height: 40px;
-  margin-top: -20px;
+  height: var(--item-height);
+  margin-top: calc(var(--item-height) / -2);
   background: rgba(120, 120, 128, 0.12);
   z-index: 0;
   pointer-events: none;
@@ -226,52 +216,35 @@ body {
 .wheel-col::-webkit-scrollbar {
   display: none;
 }
-
-/* [수정] 접근성: 포커스가 리스트(ul)가 아닌 컨테이너(div)에 잡힘 */
 .wheel-col:focus {
   outline: none;
-  box-shadow: inset 0 0 0 2px #007aff;
-  background-color: rgba(0, 122, 255, 0.05);
+  box-shadow: inset 0 0 0 2px var(--picker-color);
+  background-color: rgba(0, 0, 0, 0.03);
   border-radius: 8px;
 }
 
-/* [수정] height를 auto로 변경하여 패딩만큼 스크롤이 늘어나게 함 */
 .wheel-list {
   list-style: none;
-  padding: 0;
   margin: 0;
   text-align: center;
   width: 100%;
-
-  /* height: 100%;  <-- 이걸 지우세요 */
-  height: auto; /* <-- 이렇게 변경하세요 (내용물 + 패딩 크기만큼 늘어남) */
-
-  display: block;
+  padding: calc((var(--picker-height) - var(--item-height)) / 2) 0;
 }
 
 .wheel-item {
-  height: 40px;
+  height: var(--item-height);
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 17px;
   color: #999;
-  scroll-snap-align: center;
   cursor: pointer;
-  will-change: transform, opacity;
-  transition:
-    transform 0.1s,
-    opacity 0.1s,
-    color 0.1s;
+  scroll-snap-align: center;
+  transition: all 0.2s;
   transform-style: preserve-3d;
-  transform: rotateX(calc(var(--angle, 0) * 1deg))
-    translateZ(calc(var(--offset, 0) * 1px));
-  opacity: var(--opacity, 0.3);
 }
-
 .wheel-item.selected {
   color: #000;
   font-weight: 600;
   font-size: 19px;
-  opacity: 1 !important;
 }

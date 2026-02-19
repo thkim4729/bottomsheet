@@ -3,45 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ultimate 3D Date Picker</title>
+    <title>Ultimate Accessible Date Picker</title>
     <link rel="stylesheet" href="datepicker.css" />
     <script src="datepicker.js" defer></script>
   </head>
   <body>
-    <div
-      class="container"
-      style="padding: 20px; width: 100%; max-width: 500px; margin: 0 auto"
-    >
-      <h3 style="margin-bottom: 10px">여행 시작일</h3>
-
-      <div class="input-group js-date-picker" data-close-on-enter="true">
+    <div class="container">
+      <h3 class="title">여행 시작일</h3>
+      <div class="input-group date_picker theme-orange">
         <div class="picker-wrapper">
           <input
             type="text"
             class="picker-input"
-            placeholder="날짜 선택 (예: 20240520)"
+            placeholder="날짜 선택"
             readonly
           />
-          <button
-            type="button"
-            class="picker-icon-btn"
-            aria-label="여행 시작일 선택"
-          >
+          <button type="button" class="picker-icon-btn" aria-label="날짜 선택">
             📅
           </button>
         </div>
-        <p class="error-text">올바른 날짜 형식이 아닙니다.</p>
+        <p class="error-text">선택할 수 없는 날짜입니다.</p>
       </div>
 
       <br /><br />
 
-      <h3 style="margin-bottom: 10px">숙박 기간</h3>
-
-      <div
-        class="input-group js-date-picker"
-        data-min-year="2024"
-        data-max-year="2030"
-      >
+      <h3 class="title">숙박 기간</h3>
+      <div class="input-group date_picker">
         <div class="picker-wrapper">
           <input
             type="text"
@@ -52,12 +39,11 @@
           <button
             type="button"
             class="picker-icon-btn"
-            aria-label="체크인 날짜 선택"
+            aria-label="체크인 선택"
           >
             📅
           </button>
         </div>
-
         <div class="picker-wrapper">
           <input
             type="text"
@@ -68,24 +54,17 @@
           <button
             type="button"
             class="picker-icon-btn"
-            aria-label="체크아웃 날짜 선택"
+            aria-label="체크아웃 선택"
           >
             📅
           </button>
         </div>
-
         <p class="error-text">유효하지 않은 기간입니다.</p>
       </div>
     </div>
 
     <div class="picker-overlay"></div>
-
-    <div
-      class="bottom-sheet"
-      role="dialog"
-      aria-modal="true"
-      aria-label="날짜 선택"
-    >
+    <div class="bottom-sheet" role="dialog" aria-modal="true">
       <div class="sheet-header">
         <button class="btn-close">취소</button>
         <button class="btn-done">완료</button>
@@ -93,18 +72,9 @@
 
       <div class="picker-area">
         <div class="highlight-bar"></div>
-
-        <div class="wheel-col year-col">
-          <ul class="wheel-list"></ul>
-        </div>
-
-        <div class="wheel-col month-col">
-          <ul class="wheel-list"></ul>
-        </div>
-
-        <div class="wheel-col day-col">
-          <ul class="wheel-list"></ul>
-        </div>
+        <div class="wheel-col year-col"><ul class="wheel-list"></ul></div>
+        <div class="wheel-col month-col"><ul class="wheel-list"></ul></div>
+        <div class="wheel-col day-col"><ul class="wheel-list"></ul></div>
       </div>
     </div>
   </body>
