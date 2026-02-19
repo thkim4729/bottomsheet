@@ -406,7 +406,7 @@ function initDatePicker() {
       else if (col === ui.cols.day) suffix = CONFIG.locale.daySuffix;
 
       // liveRegion의 텍스트를 변경하면 스크린리더가 이를 감지하여 읽습니다.
-      state.liveRegion.textContent = `${currentValue}${suffix}가 선택되었습니다.`;
+      state.liveRegion.textContent = `${currentValue}${suffix}이 선택되었습니다.`;
     }
 
     if (CONFIG.blockHolidays && y) await ApiService.fetchHolidays(y);
