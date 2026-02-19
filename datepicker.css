@@ -212,6 +212,8 @@ body {
   scrollbar-width: none;
   position: relative;
   z-index: 1;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 .wheel-col::-webkit-scrollbar {
   display: none;
@@ -243,6 +245,9 @@ body {
   transition: all 0.2s;
   transform-style: preserve-3d;
   line-height: 1;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 .wheel-item.selected {
   color: #000;
