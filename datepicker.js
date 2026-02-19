@@ -1,18 +1,14 @@
 /**
- * [The Perfect Master] Ultimate Date Picker
- * - 클릭 이동: 선택되지 않은 항목 클릭 시 중앙으로 부드럽게 이동 및 선택
- * - 포커스 제어: 시트 오픈 시 즉시 진입 & 내부 포커스 트랩(순환) 작동
- * - 초기 상태: 시트 오픈 시 즉시 .selected 클래스 반영 및 위치 고정
- * - 톡백 최적화: 좌우(박스 점프), 위아래(값 증감 - spinbutton 역할)
- * - 성능 최적화: rAF + Passive 리스너 (크롬 110 버벅임 해결)
- * - UX 최적화: 인풋 복귀 시 모바일 키패드 팝업 차단
+ * [The Perfect Master - Revision] Ultimate Date Picker
+ * 1. 톡백 공지: aria-live 강제 갱신 로직으로 휠 정착 시 "N월이 선택되었습니다" 완벽 공지
+ * 2. 클릭 이동: wheel-item 클릭 시 즉시 중앙 이동 및 선택
+ * 3. 초기 상태: 시트 오픈 시 즉시 .selected 적용 및 위치 보정
+ * 4. 포커스 제어: 시트 오픈 시 즉시 진입 & 내부 포커스 트랩 작동
+ * 5. UX 최적화: 인풋 복귀 시 모바일 키패드 팝업 차단
  */
 document.addEventListener("DOMContentLoaded", initDatePicker);
 
 function initDatePicker() {
-  // ============================================================
-  // 1. [핵심 설정] CONFIG
-  // ============================================================
   const CONFIG = {
     minYear: new Date().getFullYear() - 50,
     maxYear: new Date().getFullYear() + 50,
@@ -21,7 +17,6 @@ function initDatePicker() {
     autoDayAdjust: true,
     enterToSelect: true,
     useMockData: true,
-
     locale: {
       yearSuffix: "년",
       monthSuffix: "월",
@@ -100,9 +95,11 @@ function initDatePicker() {
       }
     });
 
+    // [A11y] 스크린리더 공지 영역 (aria-atomic 추가로 전체 문장 읽기 보장)
     state.liveRegion = document.createElement("div");
     state.liveRegion.className = "sr-only";
-    state.liveRegion.setAttribute("aria-live", "polite");
+    state.liveRegion.setAttribute("aria-live", "assertive"); // 조작 직후 즉시 읽도록 assertive 설정
+    state.liveRegion.setAttribute("aria-atomic", "true");
     document.body.appendChild(state.liveRegion);
 
     document.querySelector(".btn-close").addEventListener("click", closeSheet);
@@ -110,14 +107,19 @@ function initDatePicker() {
     ui.btnDone.addEventListener("click", confirmSelection);
   }
 
+  /**
+   * [speak - 핵심 수정]
+   * 톡백이 변화를 확실히 감지하도록 기존 텍스트를 지웠다가 채워넣는 트릭을 사용합니다.
+   */
   function speak(msg) {
     if (state.announcementTimer) clearTimeout(state.announcementTimer);
-    state.announcementTimer = setTimeout(() => {
-      if (state.liveRegion) {
-        state.liveRegion.textContent = "";
-        state.liveRegion.textContent = msg;
-      }
-    }, 50);
+
+    if (state.liveRegion) {
+      state.liveRegion.textContent = ""; // 1. 먼저 비움
+      state.announcementTimer = setTimeout(() => {
+        state.liveRegion.textContent = msg; // 2. 50ms 뒤에 채움 (톡백이 변화를 감지함)
+      }, 50);
+    }
   }
 
   // ============================================================
@@ -154,6 +156,7 @@ function initDatePicker() {
     ui.overlay.classList.add("is-active");
     ui.sheet.addEventListener("keydown", trapFocus);
 
+    // 열리자마자 시트 내부로 포커스
     setTimeout(() => {
       ui.sheet.focus();
     }, 100);
@@ -182,7 +185,6 @@ function initDatePicker() {
     const focusables = ui.sheet.querySelectorAll('button, [tabindex="0"]');
     const first = focusables[0];
     const last = focusables[focusables.length - 1];
-
     if (e.shiftKey) {
       if (document.activeElement === first) {
         e.preventDefault();
@@ -197,7 +199,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 5. 휠 렌더링 (클릭 이동 로직 포함)
+  // 5. 휠 렌더링 (Selected 클래스 & 클릭 이벤트 보구)
   // ============================================================
   function renderWheel(col, min, max, current, label) {
     const ul = col.querySelector(".wheel-list");
@@ -213,17 +215,14 @@ function initDatePicker() {
       li.textContent = i + label;
       li.setAttribute("data-val", i);
 
+      // [보구] 초기 생성 시 selected 부여
       if (i === current) {
         li.classList.add("selected");
         li.setAttribute("aria-selected", "true");
         targetItem = li;
       }
 
-      /**
-       * [항목 클릭 이벤트]
-       * 선택되지 않은 항목을 클릭해도 해당 위치로 부드럽게 스크롤합니다.
-       * 스크롤이 발생하면 update3D가 실행되어 selected 클래스가 갱신됩니다.
-       */
+      // [보구] 클릭 시 해당 위치로 이동 및 선택
       li.addEventListener("click", () => {
         li.scrollIntoView({ block: "center", behavior: "smooth" });
       });
@@ -250,6 +249,7 @@ function initDatePicker() {
       col.dataset.hasKeyboard = "true";
     }
 
+    // [보구] 위치 즉시 고정
     if (targetItem) {
       setTimeout(() => {
         col.scrollTop =
@@ -261,22 +261,35 @@ function initDatePicker() {
     }
   }
 
-  function handleWheelKeyboard(e, col) {
-    const h = 40;
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      col.scrollBy({ top: -h, behavior: "smooth" });
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      col.scrollBy({ top: h, behavior: "smooth" });
-    } else if (e.key === "ArrowRight") {
-      if (col === ui.cols.year) ui.cols.month.focus();
-      else if (col === ui.cols.month) ui.cols.day.focus();
-    } else if (e.key === "ArrowLeft") {
-      if (col === ui.cols.day) ui.cols.month.focus();
-      else if (col === ui.cols.month) ui.cols.year.focus();
-    } else if (e.key === "Enter") {
-      confirmSelection();
+  async function onScrollEnd(activeCol) {
+    if (activeCol.dataset.preventAnnouncement === "true") return;
+
+    const y = getWheelValue(ui.cols.year),
+      m = getWheelValue(ui.cols.month),
+      d = getWheelValue(ui.cols.day);
+    const currentValue = getWheelValue(activeCol);
+
+    if (currentValue) {
+      let suffix =
+        activeCol === ui.cols.year
+          ? "년"
+          : activeCol === ui.cols.month
+            ? "월"
+            : "일";
+      // [공지] 휠 정착 시 문구 출력
+      speak(`${currentValue}${suffix}이 선택되었습니다.`);
+    }
+
+    if (CONFIG.autoDayAdjust && y && m && activeCol !== ui.cols.day) {
+      const max = new Date(y, m, 0).getDate();
+      const dayCol = ui.cols.day;
+      if (max !== dayCol.querySelectorAll("li").length) {
+        dayCol.dataset.preventAnnouncement = "true";
+        renderWheel(dayCol, 1, max, d > max ? max : d, "일");
+        setTimeout(() => {
+          dayCol.dataset.preventAnnouncement = "false";
+        }, 300);
+      }
     }
   }
 
@@ -309,37 +322,25 @@ function initDatePicker() {
     });
   }
 
-  async function onScrollEnd(activeCol) {
-    if (activeCol.dataset.preventAnnouncement === "true") return;
-    const y = getWheelValue(ui.cols.year),
-      m = getWheelValue(ui.cols.month),
-      d = getWheelValue(ui.cols.day);
-    const currentValue = getWheelValue(activeCol);
-    if (currentValue) {
-      let suffix =
-        activeCol === ui.cols.year
-          ? "년"
-          : activeCol === ui.cols.month
-            ? "월"
-            : "일";
-      speak(`${currentValue}${suffix}이 선택되었습니다.`);
-    }
-    if (CONFIG.autoDayAdjust && y && m && activeCol !== ui.cols.day) {
-      const max = new Date(y, m, 0).getDate();
-      const dayCol = ui.cols.day;
-      if (max !== dayCol.querySelectorAll("li").length) {
-        dayCol.dataset.preventAnnouncement = "true";
-        renderWheel(dayCol, 1, max, d > max ? max : d, "일");
-        setTimeout(() => {
-          dayCol.dataset.preventAnnouncement = "false";
-        }, 300);
-      }
+  function handleWheelKeyboard(e, col) {
+    const h = 40;
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      col.scrollBy({ top: -h, behavior: "smooth" });
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      col.scrollBy({ top: h, behavior: "smooth" });
+    } else if (e.key === "ArrowRight") {
+      if (col === ui.cols.year) ui.cols.month.focus();
+      else if (col === ui.cols.month) ui.cols.day.focus();
+    } else if (e.key === "ArrowLeft") {
+      if (col === ui.cols.day) ui.cols.month.focus();
+      else if (col === ui.cols.month) ui.cols.year.focus();
+    } else if (e.key === "Enter") {
+      confirmSelection();
     }
   }
 
-  // ============================================================
-  // 6. 유틸리티
-  // ============================================================
   function getWheelValue(col) {
     const center = col.scrollTop + col.offsetHeight / 2;
     let closest = null,
