@@ -1,61 +1,24 @@
 /**
- * [Library] Ultimate Date Picker (A11y & Performance Optimized)
- * 모든 기능은 'initDatePicker' 내부에 캡슐화되어 외부 스크립트와 충돌하지 않습니다.
+ * [Library] Ultimate Date Picker (A11y & Keypad Optimized)
+ * - 휠 정착 시 실시간 음성 안내 (aria-live)
+ * - 인풋 복귀 시 키패드 팝업 방지 로직 포함
  */
 document.addEventListener("DOMContentLoaded", initDatePicker);
 
 function initDatePicker() {
   // ============================================================
-  // 1. [핵심 설정] CONFIG - 기능을 켜고 끄는 컨트롤 타워
+  // 1. [핵심 설정] CONFIG
   // ============================================================
   const CONFIG = {
-    minYear: new Date().getFullYear() - 50, // 최소 연도
-    maxYear: new Date().getFullYear() + 50, // 최대 연도
-
-    /**
-     * [manualInput] 직접 타이핑 편집 허용 여부
-     * - true: 사용자가 인풋창을 클릭해 날짜를 직접 수정할 수 있습니다.
-     * - false: 인풋이 readonly가 되어 오직 바텀시트로만 선택 가능합니다.
-     */
-    manualInput: true,
-
-    /**
-     * [showDayOfWeek] 요일 출력 여부
-     * - true: "2026년 02월 19일 목요일" 형식으로 출력됩니다.
-     * - false: 요일 없이 날짜까지만 출력됩니다.
-     */
-    showDayOfWeek: true,
-
-    /**
-     * [blockWeekends] 주말 선택 차단 여부
-     * - true: 토/일요일 선택 시 에러 메시지를 띄우고 입력을 막습니다.
-     */
-    blockWeekends: false,
-
-    /**
-     * [blockHolidays] 공휴일 선택 차단 여부
-     * - true: ApiService에서 가져온 빨간날 선택 시 에러가 발생합니다.
-     */
-    blockHolidays: false,
-
-    /**
-     * [autoDayAdjust] 월별 일수 자동 최적화
-     * - true: 2월(28일)이나 4월(30일) 선택 시 '일' 휠의 개수를 자동으로 맞춥니다.
-     */
-    autoDayAdjust: true,
-
-    /**
-     * [enterToSelect] 엔터 키 완료 기능
-     * - true: 휠에 포커스가 있을 때 Enter를 누르면 '완료' 처리가 됩니다.
-     */
-    enterToSelect: true,
-
-    /**
-     * [useMockData] 데이터 통신 모드
-     * - true: 서버 없이 코드 내 가짜 데이터를 사용합니다. (테스트용)
-     * - false: 실제 API 주소로 요청을 보냅니다.
-     */
-    useMockData: true,
+    minYear: new Date().getFullYear() - 50,
+    maxYear: new Date().getFullYear() + 50,
+    manualInput: true, // 직접 입력 허용 여부
+    showDayOfWeek: true, // 요일 표시 여부
+    blockWeekends: false, // 주말 차단 여부
+    blockHolidays: false, // 공휴일 차단 여부
+    autoDayAdjust: true, // 월별 일수 자동 조정
+    enterToSelect: true, // Enter 키 완료 여부
+    useMockData: true, // 가짜 데이터 사용 모드
 
     locale: {
       yearSuffix: "년",
@@ -77,19 +40,14 @@ function initDatePicker() {
   };
 
   // ============================================================
-  // 2. [API 서비스 레이어] 데이터 통신 캡슐화
+  // 2. [API 서비스 레이어]
   // ============================================================
   const ApiService = {
-    cache: {}, // 연도별 데이터 중복 요청 방지용 저장소
-
-    /**
-     * 특정 연도의 공휴일 데이터를 가져오는 비동기 함수
-     */
+    cache: {},
     async fetchHolidays(year) {
       if (this.cache[year]) return this.cache[year];
-
       if (CONFIG.useMockData) {
-        await new Promise((r) => setTimeout(r, 200)); // 통신 지연 흉내
+        await new Promise((r) => setTimeout(r, 200));
         const mock = [
           "01-01",
           "03-01",
@@ -102,17 +60,8 @@ function initDatePicker() {
         ];
         this.cache[year] = mock;
         return mock;
-      } else {
-        try {
-          const response = await fetch(`/api/holidays?year=${year}`);
-          const data = await response.json();
-          this.cache[year] = data;
-          return data;
-        } catch (e) {
-          console.error("공휴일 로드 실패", e);
-          return [];
-        }
       }
+      return [];
     },
   };
 
@@ -120,10 +69,12 @@ function initDatePicker() {
   // 3. [시스템 상태 및 UI 참조]
   // ============================================================
   const state = {
-    activeInput: null, // 현재 선택 중인 input
-    scrollTimer: null, // 스크롤 멈춤 감지 타이머
-    lastFocusedElement: null, // 시트 닫힌 후 돌아갈 위치
-    isTicking: false, // rAF 중복 실행 방지 플래그 (성능 최적화)
+    activeInput: null,
+    scrollTimer: null,
+    lastFocusedElement: null,
+    isTicking: false,
+    // [신규] 스크린리더에게 읽어줄 메시지를 담는 영역
+    liveRegion: null,
   };
 
   const ui = {
@@ -133,9 +84,6 @@ function initDatePicker() {
     cols: { year: null, month: null, day: null },
   };
 
-  /**
-   * [setup] 초기화: 페이지 내 모든 .date_picker를 찾아 기능을 연결합니다.
-   */
   function setup() {
     cacheUI();
     document.querySelectorAll(".date_picker").forEach((container) => {
@@ -144,9 +92,8 @@ function initDatePicker() {
         const iconBtn = wrapper.querySelector(".picker-icon-btn");
         if (!input) return;
 
-        // 직접 입력 가능 여부 제어
-        if (CONFIG.manualInput) input.removeAttribute("readonly");
-        else input.setAttribute("readonly", "true");
+        // 초기 수동 입력 설정
+        input.readOnly = !CONFIG.manualInput;
 
         input.addEventListener("blur", () => validateInput(input));
         input.addEventListener("keydown", (e) => {
@@ -163,9 +110,6 @@ function initDatePicker() {
     });
   }
 
-  /**
-   * [cacheUI] UI 요소를 변수에 담고 접근성 기초 설정을 합니다.
-   */
   function cacheUI() {
     if (ui.sheet) return;
     ui.overlay = document.querySelector(".picker-overlay");
@@ -175,6 +119,7 @@ function initDatePicker() {
     ui.cols.month = document.querySelector(".month-col");
     ui.cols.day = document.querySelector(".day-col");
 
+    // [A11y] 휠 안내 메시지 설정
     const labels = [
       CONFIG.locale.yearAriaLabel,
       CONFIG.locale.monthAriaLabel,
@@ -188,12 +133,18 @@ function initDatePicker() {
       }
     });
 
+    // [신규] 스크린리더 공지용 aria-live 영역 생성 (화면엔 보이지 않음)
+    state.liveRegion = document.createElement("div");
+    state.liveRegion.className = "sr-only";
+    state.liveRegion.setAttribute("aria-live", "polite");
+    state.liveRegion.setAttribute("aria-atomic", "true");
+    document.body.appendChild(state.liveRegion);
+
     document.querySelector(".btn-close").addEventListener("click", closeSheet);
     ui.overlay.addEventListener("click", closeSheet);
     ui.btnDone.addEventListener("click", confirmSelection);
   }
 
-  // [trapFocus] 탭 키 이동을 바텀시트 내부로 제한 (접근성)
   function trapFocus(e) {
     if (e.key !== "Tab") return;
     const focusables = ui.sheet.querySelectorAll('button, [tabindex="0"]');
@@ -213,7 +164,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 4. 비동기 시트 제어
+  // 4. 비동기 시트 제어 및 키패드 방지
   // ============================================================
   async function openSheet(input, container) {
     state.lastFocusedElement = input;
@@ -231,7 +182,6 @@ function initDatePicker() {
       d: new Date().getDate(),
     };
 
-    // 공휴일 데이터 비동기 확보 (await)
     if (CONFIG.blockHolidays) await ApiService.fetchHolidays(d.y);
 
     renderWheel(
@@ -257,12 +207,34 @@ function initDatePicker() {
     setTimeout(() => ui.sheet.focus(), 50);
   }
 
+  /**
+   * [closeSheet] 키패드 방지 로직 포함
+   */
   function closeSheet() {
     ui.overlay.classList.remove("is-active");
     ui.sheet.classList.remove("is-active");
     ui.sheet.removeAttribute("tabindex");
     ui.sheet.removeEventListener("keydown", trapFocus);
-    if (state.lastFocusedElement) state.lastFocusedElement.focus();
+
+    if (state.lastFocusedElement) {
+      const input = state.lastFocusedElement;
+
+      /**
+       * [키패드 방지 핵심]
+       * 1. 인풋을 일시적으로 readonly로 바꿉니다.
+       * 2. 포커스를 줍니다. (이때 브라우저는 편집 불가능한 창이라 판단해 키패드를 올리지 않습니다.)
+       * 3. 아주 짧은 지연 후 원래의 편집 권한(CONFIG.manualInput)을 되돌려줍니다.
+       */
+      const originalReadOnly = input.readOnly;
+      input.readOnly = true;
+      input.focus();
+
+      setTimeout(() => {
+        input.readOnly = originalReadOnly;
+      }, 100);
+
+      state.lastFocusedElement = null;
+    }
   }
 
   function confirmSelection() {
@@ -281,7 +253,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 5. 비즈니스 로직 및 유틸리티
+  // 5. 비즈니스 로직
   // ============================================================
   function formatDateString(y, m, d) {
     let str = `${y}년 ${String(m).padStart(2, "0")}월 ${String(d).padStart(2, "0")}일`;
@@ -304,7 +276,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 6. 휠 렌더링 및 성능/접근성 최적화
+  // 6. 휠 렌더링 및 톡백 공지 강화
   // ============================================================
   function renderWheel(col, min, max, current, label) {
     const ul = col.querySelector(".wheel-list");
@@ -321,9 +293,8 @@ function initDatePicker() {
       li.textContent = i + label;
       li.setAttribute("data-val", i);
       li.setAttribute("role", "option");
-      li.setAttribute("tabindex", "-1"); // [A11y] 톡백 스와이프 탐색용
+      li.setAttribute("tabindex", "-1");
 
-      // [A11y] 톡백 초점 이동 시 자동 스크롤
       li.addEventListener("focus", () => {
         li.scrollIntoView({ block: "center", behavior: "smooth" });
       });
@@ -341,17 +312,13 @@ function initDatePicker() {
     }
     ul.appendChild(fragment);
 
-    /**
-     * [성능 최적화] Passive 스크롤 리스너
-     * 브라우저가 스크롤 애니메이션을 멈추지 않고 부드럽게 처리하도록 합니다.
-     */
     if (!col.dataset.hasScroll) {
       col.addEventListener(
         "scroll",
         () => {
           update3D(col);
           clearTimeout(state.scrollTimer);
-          state.scrollTimer = setTimeout(onScrollEnd, 150);
+          state.scrollTimer = setTimeout(() => onScrollEnd(col), 150);
         },
         { passive: true },
       );
@@ -363,7 +330,6 @@ function initDatePicker() {
       col.dataset.hasKeyboard = "true";
     }
 
-    // 초기 위치 보정
     setTimeout(() => {
       const target = ul.querySelector(".selected");
       if (target) {
@@ -387,10 +353,6 @@ function initDatePicker() {
     }
   }
 
-  /**
-   * [성능 최적화] requestAnimationFrame (rAF) 적용
-   * 화면 갱신 주기에 맞춰 3D 계산을 수행하여 크롬 110 등에서의 버벅임을 해결합니다.
-   */
   function update3D(col) {
     if (state.isTicking) return;
     state.isTicking = true;
@@ -414,7 +376,6 @@ function initDatePicker() {
 
         if (dist <= 150) {
           const angle = Math.max(Math.min((center - itemCenter) / 5, 50), -50);
-          // translateZ(0)로 GPU 하드웨어 가속 강제
           item.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
           item.style.opacity = Math.max(1 - Math.pow(dist / 150, 2), 0.3);
         } else {
@@ -426,10 +387,28 @@ function initDatePicker() {
     });
   }
 
-  async function onScrollEnd() {
+  /**
+   * [onScrollEnd] 스크롤 정착 시 실행
+   * @param {HTMLElement} col - 스크롤이 발생한 컬럼
+   */
+  async function onScrollEnd(col) {
     const y = getWheelValue(ui.cols.year),
       m = getWheelValue(ui.cols.month),
       d = getWheelValue(ui.cols.day);
+
+    // [신규] 스크린리더 공지 로직
+    // 현재 스크롤이 끝난 컬럼의 값을 찾아 음성으로 읽어줍니다.
+    const currentValue = getWheelValue(col);
+    if (currentValue && state.liveRegion) {
+      let suffix = "";
+      if (col === ui.cols.year) suffix = CONFIG.locale.yearSuffix;
+      else if (col === ui.cols.month) suffix = CONFIG.locale.monthSuffix;
+      else if (col === ui.cols.day) suffix = CONFIG.locale.daySuffix;
+
+      // liveRegion의 텍스트를 변경하면 스크린리더가 이를 감지하여 읽습니다.
+      state.liveRegion.textContent = `${currentValue}${suffix}가 선택되었습니다.`;
+    }
+
     if (CONFIG.blockHolidays && y) await ApiService.fetchHolidays(y);
     if (CONFIG.autoDayAdjust && y && m) {
       const max = new Date(y, m, 0).getDate();
@@ -445,7 +424,6 @@ function initDatePicker() {
     }
   }
 
-  // 기타 유틸리티 함수들
   function getWheelValue(col) {
     const center = col.scrollTop + col.offsetHeight / 2;
     let closest = null,
