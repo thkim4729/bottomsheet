@@ -254,3 +254,15 @@ body {
   font-weight: 600;
   font-size: 19px;
 }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0); /* 과거 브라우저용 */
+  clip-path: inset(50%); /* 현대 브라우저용 */
+  white-space: nowrap;
+  border: 0;
+}
