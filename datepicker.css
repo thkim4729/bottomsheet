@@ -242,6 +242,7 @@ body {
   scroll-snap-align: center;
   transition: all 0.2s;
   transform-style: preserve-3d;
+  line-height: 1;
 }
 .wheel-item.selected {
   color: #000;
