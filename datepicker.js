@@ -1,27 +1,24 @@
 /**
- * [Final Master] Ultimate Date Picker (A11y & Performance Full-Suite)
- * - 바텀시트 진입/퇴장 포커스 완벽 제어
- * - 크롬 110 애니메이션 버벅임 해결 (rAF + Passive)
- * - 톡백(TalkBack) 박스 간 점프 및 항목 탐색 최적화
- * - 독립적 음성 안내 (조작 중인 휠만 공지)
- * - 모바일 키패드 팝업 방지 로직
+ * [Final Master] Ultimate Date Picker (A11y, Performance & UX)
+ * 1. 성능: rAF와 Passive 리스너로 크롬 저버전 애니메이션 버벅임 해결
+ * 2. 접근성: role="spinbutton" 적용으로 톡백 위아래 쓸기(값 조절) 지원
+ * 3. 탐색: 좌우 쓸기로 연/월/일 박스 간 즉시 점프 지원
+ * 4. UX: 인풋 복귀 시 모바일 키패드 팝업 원천 차단
  */
 document.addEventListener("DOMContentLoaded", initDatePicker);
 
 function initDatePicker() {
   // ============================================================
-  // 1. [핵심 설정] CONFIG
+  // 1. [핵심 설정] CONFIG - 컨트롤 타워
   // ============================================================
   const CONFIG = {
     minYear: new Date().getFullYear() - 50,
     maxYear: new Date().getFullYear() + 50,
     manualInput: true, // 직접 입력 허용 여부
     showDayOfWeek: true, // 요일 표시 여부
-    blockWeekends: false, // 주말 차단 여부
-    blockHolidays: false, // 공휴일 차단 여부
-    autoDayAdjust: true, // 월별 일수 자동 조정
-    enterToSelect: true, // Enter 키 완료 여부
-    useMockData: true, // 가짜 데이터 모드
+    autoDayAdjust: true, // 월별 일수 자동 조정 (2월 28일 등)
+    enterToSelect: true, // 휠에서 Enter 키 입력 시 완료
+    useMockData: true, // 백엔드 미연결 시 가짜 데이터 사용
 
     locale: {
       yearSuffix: "년",
@@ -39,14 +36,11 @@ function initDatePicker() {
       yearAriaLabel: "연도 선택",
       monthAriaLabel: "월 선택",
       dayAriaLabel: "일 선택",
-      jumpToMonth: "월 선택으로 건너뛰기",
-      jumpToDay: "일 선택으로 건너뛰기",
-      jumpToYear: "연도 선택으로 건너뛰기",
     },
   };
 
   // ============================================================
-  // 2. [API 서비스 레이어]
+  // 2. [API 서비스 레이어] 백엔드 통신 캡슐화
   // ============================================================
   const ApiService = {
     cache: {},
@@ -54,7 +48,7 @@ function initDatePicker() {
       if (this.cache[year]) return this.cache[year];
       if (CONFIG.useMockData) {
         await new Promise((r) => setTimeout(r, 200));
-        this.cache[year] = [
+        const mock = [
           "01-01",
           "03-01",
           "05-05",
@@ -64,7 +58,8 @@ function initDatePicker() {
           "10-09",
           "12-25",
         ];
-        return this.cache[year];
+        this.cache[year] = mock;
+        return mock;
       }
       return [];
     },
@@ -89,6 +84,7 @@ function initDatePicker() {
     cols: { year: null, month: null, day: null },
   };
 
+  // [초기화 셋업]
   function setup() {
     cacheUI();
     document.querySelectorAll(".date_picker").forEach((container) => {
@@ -119,11 +115,11 @@ function initDatePicker() {
     ui.cols.month = document.querySelector(".month-col");
     ui.cols.day = document.querySelector(".day-col");
 
-    // 컬럼 기초 설정 (Role & Label)
+    // [A11y 핵심] 컬럼을 '조절 가능한 버튼(spinbutton)'으로 설정
     [ui.cols.year, ui.cols.month, ui.cols.day].forEach((col, i) => {
       if (col) {
         col.setAttribute("tabindex", "0");
-        col.setAttribute("role", "group"); // 톡백이 그룹 단위로 인식하도록 설정
+        col.setAttribute("role", "spinbutton");
         const labels = [
           CONFIG.locale.yearAriaLabel,
           CONFIG.locale.monthAriaLabel,
@@ -133,7 +129,7 @@ function initDatePicker() {
       }
     });
 
-    // 스크린리더 공지 영역
+    // 스크린리더 안내용 liveRegion (sr-only 클래스 필요)
     state.liveRegion = document.createElement("div");
     state.liveRegion.className = "sr-only";
     state.liveRegion.setAttribute("aria-live", "polite");
@@ -154,25 +150,11 @@ function initDatePicker() {
     }, 50);
   }
 
-  // 톡백 탐색용 점프 버튼
-  function addJumpButton(col, targetCol, label) {
-    if (!targetCol) return;
-    const btn = document.createElement("button");
-    btn.className = "sr-only focusable-sr-only";
-    btn.textContent = label;
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      targetCol.focus();
-    });
-    col.prepend(btn);
-  }
-
   // ============================================================
-  // 4. 바텀 시트 제어 (Focus In/Out 핵심 로직)
+  // 4. 바텀 시트 제어 (Focus & Keypad Optimized)
   // ============================================================
   async function openSheet(input, container) {
-    state.lastFocusedElement = input; // 닫을 때 돌아올 곳 저장
+    state.lastFocusedElement = input;
     state.activeInput = input;
 
     const d = parseDate(input.value) || {
@@ -182,7 +164,6 @@ function initDatePicker() {
     };
     if (CONFIG.blockHolidays) await ApiService.fetchHolidays(d.y);
 
-    // 휠 렌더링
     renderWheel(
       ui.cols.year,
       CONFIG.minYear,
@@ -199,18 +180,12 @@ function initDatePicker() {
       CONFIG.locale.daySuffix,
     );
 
-    // 점프 버튼 추가
-    addJumpButton(ui.cols.year, ui.cols.month, CONFIG.locale.jumpToMonth);
-    addJumpButton(ui.cols.month, ui.cols.day, CONFIG.locale.jumpToDay);
-    addJumpButton(ui.cols.day, ui.cols.year, CONFIG.locale.jumpToYear);
-
-    // [핵심] 시트 활성화 및 포커싱
-    ui.sheet.setAttribute("tabindex", "-1"); // 시트가 포커스를 받을 수 있게 설정
+    ui.sheet.setAttribute("tabindex", "-1");
     ui.sheet.classList.add("is-active");
     ui.overlay.classList.add("is-active");
     ui.sheet.addEventListener("keydown", trapFocus);
 
-    // 애니메이션이 시작된 직후 포커스 이동 (가장 중요)
+    // 시트 진입 시 포커싱
     setTimeout(() => {
       ui.sheet.focus();
     }, 100);
@@ -220,11 +195,10 @@ function initDatePicker() {
     ui.overlay.classList.remove("is-active");
     ui.sheet.classList.remove("is-active");
     ui.sheet.removeAttribute("tabindex");
-    ui.sheet.removeEventListener("keydown", trapFocus);
 
     if (state.lastFocusedElement) {
       const input = state.lastFocusedElement;
-      // [UX] 키패드 팝업 방지 로직
+      // [키패드 방지] Readonly 트릭 적용
       const originalReadOnly = input.readOnly;
       input.readOnly = true;
       input.focus();
@@ -254,7 +228,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 5. 휠 렌더링 및 음성 안내 (독립 공지 로직)
+  // 5. 휠 렌더링 및 음성 독립 가이드
   // ============================================================
   function renderWheel(col, min, max, current, label) {
     const ul = col.querySelector(".wheel-list");
@@ -265,13 +239,12 @@ function initDatePicker() {
 
     for (let i = min; i <= max; i++) {
       const li = document.createElement("li");
-      const itemId = `picker-${colId}-${i}`;
-      li.id = itemId;
+      li.id = `picker-${colId}-${i}`;
       li.className = "wheel-item";
       li.textContent = i + label;
       li.setAttribute("data-val", i);
       li.setAttribute("role", "option");
-      li.setAttribute("tabindex", "-1");
+      li.setAttribute("tabindex", "-1"); // 개별 탐색 지원
 
       li.addEventListener("focus", () =>
         li.scrollIntoView({ block: "center", behavior: "smooth" }),
@@ -283,13 +256,12 @@ function initDatePicker() {
       if (i === current) {
         li.classList.add("selected");
         li.setAttribute("aria-selected", "true");
-        col.setAttribute("aria-activedescendant", itemId);
+        col.setAttribute("aria-activedescendant", li.id);
       }
       fragment.appendChild(li);
     }
     ul.appendChild(fragment);
 
-    // [성능] Passive 스크롤
     if (!col.dataset.hasScroll) {
       col.addEventListener(
         "scroll",
@@ -308,8 +280,11 @@ function initDatePicker() {
       col.dataset.hasKeyboard = "true";
     }
 
+    // 초기 정착
     setTimeout(() => {
-      const target = ul.querySelector(".selected");
+      const target = [...ul.children].find(
+        (li) => parseInt(li.dataset.val) === current,
+      );
       if (target) {
         target.scrollIntoView({ block: "center", behavior: "auto" });
         update3D(col);
@@ -317,8 +292,10 @@ function initDatePicker() {
     }, 50);
   }
 
+  /**
+   * [onScrollEnd] 독립적 공지 보장
+   */
   async function onScrollEnd(activeCol) {
-    // 자동 일수 조정 시 발생하는 스크롤 공지 차단
     if (activeCol.dataset.preventAnnouncement === "true") return;
 
     const y = getWheelValue(ui.cols.year),
@@ -333,7 +310,7 @@ function initDatePicker() {
           : activeCol === ui.cols.month
             ? "월"
             : "일";
-      // [A11y] 사용자가 직접 돌린 휠 정보만 안내
+      // [A11y] 사용자가 직접 조작한 박스 정보만 안내
       speak(`${currentValue}${suffix}이 선택되었습니다.`);
     }
 
@@ -351,6 +328,10 @@ function initDatePicker() {
     }
   }
 
+  /**
+   * [update3D & A11y Visibility]
+   * 화면 내 5개 요소만 톡백 인식하게 하여 스와이프 피로도 감소
+   */
   function update3D(col) {
     if (state.isTicking) return;
     state.isTicking = true;
@@ -360,20 +341,28 @@ function initDatePicker() {
       items.forEach((item) => {
         const itemCenter = item.offsetTop + item.offsetHeight / 2;
         const dist = Math.abs(center - itemCenter);
-        if (dist < 20) {
-          item.classList.add("selected");
-          item.setAttribute("aria-selected", "true");
-          col.setAttribute("aria-activedescendant", item.id);
+
+        // 톡백 가시성 제한 (중앙 근처 5개만 노출)
+        if (dist <= 100) {
+          item.removeAttribute("aria-hidden");
+          if (dist < 20) {
+            item.classList.add("selected");
+            item.setAttribute("aria-selected", "true");
+            col.setAttribute("aria-activedescendant", item.id);
+            col.setAttribute("aria-valuetext", item.textContent); // 스핀버튼 현재 값 업데이트
+          } else {
+            item.classList.remove("selected");
+          }
         } else {
-          item.classList.remove("selected");
-          item.setAttribute("aria-selected", "false");
+          item.setAttribute("aria-hidden", "true");
         }
+
         if (dist <= 150) {
           const angle = Math.max(Math.min((center - itemCenter) / 5, 50), -50);
           item.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
           item.style.opacity = Math.max(1 - Math.pow(dist / 150, 2), 0.3);
         } else {
-          item.style.opacity = "0.3";
+          item.style.opacity = "0";
           item.style.transform = "";
         }
       });
@@ -381,7 +370,30 @@ function initDatePicker() {
     });
   }
 
-  // 기타 유틸리티 (getWheelValue, confirmSelection, validateInput 등은 이전과 동일)
+  // [톡백 제스처 연결] 위아래 쓸기(값 증감), 좌우 쓸기(박스 이동)
+  function handleWheelKeyboard(e, col) {
+    const h = 40;
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      col.scrollBy({ top: -h, behavior: "smooth" });
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      col.scrollBy({ top: h, behavior: "smooth" });
+    } else if (e.key === "ArrowRight") {
+      if (col === ui.cols.year) ui.cols.month.focus();
+      else if (col === ui.cols.month) ui.cols.day.focus();
+    } else if (e.key === "ArrowLeft") {
+      if (col === ui.cols.day) ui.cols.month.focus();
+      else if (col === ui.cols.month) ui.cols.year.focus();
+    } else if (e.key === "Enter" && CONFIG.enterToSelect) {
+      e.preventDefault();
+      confirmSelection();
+    }
+  }
+
+  // ============================================================
+  // 6. 유틸리티
+  // ============================================================
   function getWheelValue(col) {
     const center = col.scrollTop + col.offsetHeight / 2;
     let closest = null,
@@ -421,26 +433,6 @@ function initDatePicker() {
         d: +nums.substr(6, 2),
       };
     return null;
-  }
-
-  function handleWheelKeyboard(e, col) {
-    const h = 40;
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      col.scrollBy({ top: -h, behavior: "smooth" });
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      col.scrollBy({ top: h, behavior: "smooth" });
-    } else if (e.key === "ArrowRight") {
-      if (col === ui.cols.year) ui.cols.month.focus();
-      else if (col === ui.cols.month) ui.cols.day.focus();
-    } else if (e.key === "ArrowLeft") {
-      if (col === ui.cols.day) ui.cols.month.focus();
-      else if (col === ui.cols.month) ui.cols.year.focus();
-    } else if (e.key === "Enter" && CONFIG.enterToSelect) {
-      e.preventDefault();
-      confirmSelection();
-    }
   }
 
   function validateInput(input) {
