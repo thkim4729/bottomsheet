@@ -243,11 +243,16 @@ body {
   cursor: pointer;
   scroll-snap-align: center;
   transition: all 0.2s;
-  transform-style: preserve-3d;
   line-height: 1;
-  backface-visibility: hidden;
+  /* [핵심] GPU 가속을 사용하도록 설정 */
   will-change: transform, opacity;
-  transform: translateZ(0);
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+
+  /* [추가] 요소가 갑자기 나타나지 않도록 아주 부드러운 전환 효과 부여 */
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.1s ease-out;
 }
 .wheel-item.selected {
   color: #000;

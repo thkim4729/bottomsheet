@@ -256,6 +256,7 @@ function initDatePicker() {
         const itemCenter = item.offsetTop + item.offsetHeight / 2;
         const dist = Math.abs(center - itemCenter);
 
+        // 1. 선택 상태 업데이트
         if (dist < 20) {
           item.classList.add("selected");
           item.setAttribute("aria-selected", "true");
@@ -264,13 +265,21 @@ function initDatePicker() {
           item.setAttribute("aria-selected", "false");
         }
 
-        if (dist <= 150) {
+        // 2. [수정] 3D 효과 및 투명도 계산 범위 확장
+        // 가시 거리(150 -> 250)를 넓혀서 미리 요소들이 보이게 합니다.
+        if (dist <= 250) {
           const angle = Math.max(Math.min((center - itemCenter) / 5, 50), -50);
+          // translateZ(0)을 추가하여 GPU 레이어를 유지합니다.
           item.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
-          item.style.opacity = Math.max(1 - Math.pow(dist / 150, 2), 0.3);
+
+          // 최소 투명도를 0.1 정도로 유지하여 갑자기 나타나는 느낌을 없앱니다.
+          const opacity = Math.max(1 - Math.pow(dist / 250, 2), 0.1);
+          item.style.opacity = opacity;
+          item.style.visibility = "visible";
         } else {
-          item.style.opacity = "0.3";
-          item.style.transform = "";
+          // 아주 먼 요소만 숨김 처리
+          item.style.opacity = "0";
+          item.style.visibility = "hidden";
         }
       });
       state.isTicking = false;
