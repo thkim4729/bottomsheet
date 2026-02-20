@@ -1,9 +1,8 @@
 /**
- * [Final Integrated Master] Ultimate Date Picker
- * - 요일 관리: 배열 대신 개별 변수(sun, mon...)로 관리
- * - 톡백 조작: 더블 탭(클릭) 시에만 선택 및 중앙 이동
- * - 포커스 제어: 바텀시트 내부 포커스 트랩 작동
- * - 성능 최적화: rAF + GPU 가속으로 고속 스크롤 대응
+ * [Final Master - Accessibility & Logic Combined]
+ * - 톡백 개선: 목록 진입 시 "연도 선택 목록", "월 선택 목록" 등 목적 공지
+ * - 요일 변수화: sun, mon... 개별 변수 매핑 사용
+ * - 선택 로직: 스와이프 시 초점만 이동, 더블 탭(클릭) 시 선택 및 중앙 이동
  */
 document.addEventListener("DOMContentLoaded", initDatePicker);
 
@@ -11,7 +10,7 @@ function initDatePicker() {
   const currentYear = new Date().getFullYear();
 
   // ============================================================
-  // 1. [핵심 설정] CONFIG - 요일 변수화 적용
+  // 1. [핵심 설정] CONFIG
   // ============================================================
   const CONFIG = {
     minYear: currentYear - 5,
@@ -24,7 +23,7 @@ function initDatePicker() {
       yearSuffix: "년",
       monthSuffix: "월",
       daySuffix: "일",
-      // 요일을 개별 변수로 저장
+      // 요일 변수화
       sun: "일요일",
       mon: "월요일",
       tue: "화요일",
@@ -33,15 +32,13 @@ function initDatePicker() {
       fri: "금요일",
       sat: "토요일",
 
-      yearAriaLabel: "연도 선택 리스트",
-      monthAriaLabel: "월 선택 리스트",
-      dayAriaLabel: "일 선택 리스트",
+      // [개선] 목록 상자에 대한 구체적인 설명
+      yearAriaLabel: "연도 선택 목록상자",
+      monthAriaLabel: "월 선택 목록상자",
+      dayAriaLabel: "일 선택 목록상자",
     },
   };
 
-  /**
-   * getDay()의 인덱스(0~6)를 CONFIG의 개별 요일 변수와 매핑합니다.
-   */
   function getDayName(date) {
     const dayIndex = date.getDay();
     const { sun, mon, tue, wed, thu, fri, sat } = CONFIG.locale;
@@ -89,11 +86,20 @@ function initDatePicker() {
     ui.cols.month = document.querySelector(".month-col");
     ui.cols.day = document.querySelector(".day-col");
 
-    [ui.cols.year, ui.cols.month, ui.cols.day].forEach((col) => {
+    // [중요 수정] 각 컬럼의 ul에 구체적인 aria-label을 부여합니다.
+    const colLabels = [
+      CONFIG.locale.yearAriaLabel,
+      CONFIG.locale.monthAriaLabel,
+      CONFIG.locale.dayAriaLabel,
+    ];
+    [ui.cols.year, ui.cols.month, ui.cols.day].forEach((col, idx) => {
       if (col) {
         col.setAttribute("role", "none");
         const ul = col.querySelector(".wheel-list");
-        if (ul) ul.setAttribute("role", "listbox");
+        if (ul) {
+          ul.setAttribute("role", "listbox");
+          ul.setAttribute("aria-label", colLabels[idx]); // 톡백이 "연도 선택 목록상자"라고 읽음
+        }
       }
     });
 
@@ -133,7 +139,6 @@ function initDatePicker() {
 
     ui.sheet.classList.add("is-active");
     ui.overlay.classList.add("is-active");
-
     ui.sheet.setAttribute("tabindex", "-1");
     ui.sheet.addEventListener("keydown", trapFocus);
 
@@ -146,14 +151,12 @@ function initDatePicker() {
     ui.overlay.classList.remove("is-active");
     ui.sheet.classList.remove("is-active");
     ui.sheet.removeEventListener("keydown", trapFocus);
-
     if (state.lastFocusedElement) {
       const input = state.lastFocusedElement;
-      const originalReadOnly = input.readOnly;
       input.readOnly = true;
       input.focus();
       setTimeout(() => {
-        input.readOnly = originalReadOnly;
+        input.readOnly = !CONFIG.manualInput;
       }, 150);
     }
   }
@@ -163,7 +166,6 @@ function initDatePicker() {
     const focusables = ui.sheet.querySelectorAll('button, [tabindex="0"]');
     const first = focusables[0];
     const last = focusables[focusables.length - 1];
-
     if (e.shiftKey) {
       if (document.activeElement === first) {
         e.preventDefault();
@@ -178,7 +180,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 휠 렌더링 & 고속 스크롤 대응
+  // 휠 렌더링 (더블 탭 선택 로직)
   // ============================================================
   function renderWheel(col, min, max, current, label) {
     const ul = col.querySelector(".wheel-list");
@@ -201,7 +203,7 @@ function initDatePicker() {
         targetItem = li;
       }
 
-      // 톡백 탐색 시 초점만 가고, 더블 탭(클릭) 시에만 중앙 이동
+      // 더블 탭(클릭) 시에만 선택 및 중앙 이동
       li.addEventListener("click", () => {
         li.scrollIntoView({ block: "center", behavior: "smooth" });
       });
@@ -234,15 +236,12 @@ function initDatePicker() {
   function update3D(col) {
     if (state.isTicking) return;
     state.isTicking = true;
-
     requestAnimationFrame(() => {
       const items = col.querySelectorAll(".wheel-item");
       const center = col.scrollTop + col.offsetHeight / 2;
-
       items.forEach((item) => {
         const itemCenter = item.offsetTop + item.offsetHeight / 2;
         const dist = Math.abs(center - itemCenter);
-
         if (dist < 20) {
           item.classList.add("selected");
           item.setAttribute("aria-selected", "true");
@@ -250,16 +249,12 @@ function initDatePicker() {
           item.classList.remove("selected");
           item.setAttribute("aria-selected", "false");
         }
-
-        // 고속 스크롤 시 '팝업' 방지를 위해 가시 범위(250px) 확장 및 최소 투명도 보정
         if (dist <= 250) {
           const angle = Math.max(Math.min((center - itemCenter) / 5, 50), -50);
           item.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
           item.style.opacity = Math.max(1 - Math.pow(dist / 250, 2), 0.1);
-          item.style.pointerEvents = "auto";
         } else {
           item.style.opacity = "0";
-          item.style.pointerEvents = "none";
         }
       });
       state.isTicking = false;
@@ -278,9 +273,6 @@ function initDatePicker() {
     }
   }
 
-  // ============================================================
-  // 6. 유틸리티 (요일 변수 매핑 적용)
-  // ============================================================
   function getWheelValue(col) {
     const center = col.scrollTop + col.offsetHeight / 2;
     let closest = null,
@@ -300,14 +292,9 @@ function initDatePicker() {
       m = getWheelValue(ui.cols.month),
       d = getWheelValue(ui.cols.day);
     if (!y || !m || !d) return;
-
     const dateObj = new Date(y, m - 1, d);
     const dateStr = `${y}년 ${String(m).padStart(2, "0")}월 ${String(d).padStart(2, "0")}일`;
-
-    // 개별 변수 매핑 함수 사용
-    const dayName = getDayName(dateObj);
-
-    state.activeInput.value = `${dateStr} ${dayName}`;
+    state.activeInput.value = `${dateStr} ${getDayName(dateObj)}`;
     closeSheet();
   }
 
@@ -327,8 +314,7 @@ function initDatePicker() {
     if (d) {
       const dateObj = new Date(d.y, d.m - 1, d.d);
       const str = `${d.y}년 ${String(d.m).padStart(2, "0")}월 ${String(d.d).padStart(2, "0")}일`;
-      const dayName = getDayName(dateObj);
-      input.value = `${str} ${dayName}`;
+      input.value = `${str} ${getDayName(dateObj)}`;
     }
   }
 
