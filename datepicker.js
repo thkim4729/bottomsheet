@@ -1,35 +1,53 @@
 /**
- * [The Cleanest Version] Focus Fix & Sequential Navigation
- * - 불필요한 초점 노드 제거 (보이지 않는 무언가 해결)
- * - 바텀시트 내부 포커스 트랩 (이탈 방지)
- * - 5년 전 ~ 현재 연도 범위 설정
- * - 크롬 성능 최적화 (Fast Scroll 대응)
+ * [Final Integrated Master] Ultimate Date Picker
+ * - 요일 관리: 배열 대신 개별 변수(sun, mon...)로 관리
+ * - 톡백 조작: 더블 탭(클릭) 시에만 선택 및 중앙 이동
+ * - 포커스 제어: 바텀시트 내부 포커스 트랩 작동
+ * - 성능 최적화: rAF + GPU 가속으로 고속 스크롤 대응
  */
 document.addEventListener("DOMContentLoaded", initDatePicker);
 
 function initDatePicker() {
   const currentYear = new Date().getFullYear();
+
+  // ============================================================
+  // 1. [핵심 설정] CONFIG - 요일 변수화 적용
+  // ============================================================
   const CONFIG = {
     minYear: currentYear - 5,
     maxYear: currentYear,
     manualInput: true,
     showDayOfWeek: true,
     autoDayAdjust: true,
+
     locale: {
       yearSuffix: "년",
       monthSuffix: "월",
       daySuffix: "일",
-      days: [
-        "일요일",
-        "월요일",
-        "화요일",
-        "수요일",
-        "목요일",
-        "금요일",
-        "토요일",
-      ],
+      // 요일을 개별 변수로 저장
+      sun: "일요일",
+      mon: "월요일",
+      tue: "화요일",
+      wed: "수요일",
+      thu: "목요일",
+      fri: "금요일",
+      sat: "토요일",
+
+      yearAriaLabel: "연도 선택 리스트",
+      monthAriaLabel: "월 선택 리스트",
+      dayAriaLabel: "일 선택 리스트",
     },
   };
+
+  /**
+   * getDay()의 인덱스(0~6)를 CONFIG의 개별 요일 변수와 매핑합니다.
+   */
+  function getDayName(date) {
+    const dayIndex = date.getDay();
+    const { sun, mon, tue, wed, thu, fri, sat } = CONFIG.locale;
+    const dayMap = [sun, mon, tue, wed, thu, fri, sat];
+    return dayMap[dayIndex];
+  }
 
   const state = {
     activeInput: null,
@@ -71,16 +89,11 @@ function initDatePicker() {
     ui.cols.month = document.querySelector(".month-col");
     ui.cols.day = document.querySelector(".day-col");
 
-    // [중요] 컨테이너에는 role만 부여하고 tabindex나 label은 제거하여
-    // 톡백이 컨테이너 자체를 초점으로 잡는 현상을 방지합니다.
     [ui.cols.year, ui.cols.month, ui.cols.day].forEach((col) => {
       if (col) {
         col.setAttribute("role", "none");
         const ul = col.querySelector(".wheel-list");
-        if (ul) {
-          ul.setAttribute("role", "listbox");
-          // ul에 label을 주면 톡백이 "리스트"라고 읽고 바로 첫 항목으로 넘어갑니다.
-        }
+        if (ul) ul.setAttribute("role", "listbox");
       }
     });
 
@@ -121,13 +134,10 @@ function initDatePicker() {
     ui.sheet.classList.add("is-active");
     ui.overlay.classList.add("is-active");
 
-    // [Focus Trap] 바텀시트 외부 포커스 차단
     ui.sheet.setAttribute("tabindex", "-1");
     ui.sheet.addEventListener("keydown", trapFocus);
 
     setTimeout(() => {
-      // 첫 번째 선택된 요소(selected)에 바로 초점을 줄 수도 있지만,
-      // 시트 전체를 먼저 인식하도록 시트 자체에 포커스를 줍니다.
       ui.sheet.focus();
     }, 150);
   }
@@ -150,7 +160,6 @@ function initDatePicker() {
 
   function trapFocus(e) {
     if (e.key !== "Tab") return;
-    // 시트 내부의 모든 포커스 가능한 요소 수집
     const focusables = ui.sheet.querySelectorAll('button, [tabindex="0"]');
     const first = focusables[0];
     const last = focusables[focusables.length - 1];
@@ -169,7 +178,7 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 휠 렌더링 & 고속 스크롤 가시성 보정
+  // 휠 렌더링 & 고속 스크롤 대응
   // ============================================================
   function renderWheel(col, min, max, current, label) {
     const ul = col.querySelector(".wheel-list");
@@ -184,7 +193,7 @@ function initDatePicker() {
       li.textContent = i + label;
       li.setAttribute("data-val", i);
       li.setAttribute("role", "option");
-      li.setAttribute("tabindex", "0"); // 톡백 순차 탐색용
+      li.setAttribute("tabindex", "0");
 
       if (i === current) {
         li.classList.add("selected");
@@ -192,11 +201,10 @@ function initDatePicker() {
         targetItem = li;
       }
 
-      // 초점이 가거나 클릭하면 중앙으로 이동
-      const centerMe = () =>
+      // 톡백 탐색 시 초점만 가고, 더블 탭(클릭) 시에만 중앙 이동
+      li.addEventListener("click", () => {
         li.scrollIntoView({ block: "center", behavior: "smooth" });
-      li.addEventListener("click", centerMe);
-      li.addEventListener("focus", centerMe);
+      });
 
       fragment.appendChild(li);
     }
@@ -235,7 +243,6 @@ function initDatePicker() {
         const itemCenter = item.offsetTop + item.offsetHeight / 2;
         const dist = Math.abs(center - itemCenter);
 
-        // [A11y] 상태 업데이트
         if (dist < 20) {
           item.classList.add("selected");
           item.setAttribute("aria-selected", "true");
@@ -244,8 +251,7 @@ function initDatePicker() {
           item.setAttribute("aria-selected", "false");
         }
 
-        // [고속 스크롤 가시성 보정]
-        // 계산 범위를 250px로 넓히고 최소 투명도를 0.1 주어 미리 렌더링되게 합니다.
+        // 고속 스크롤 시 '팝업' 방지를 위해 가시 범위(250px) 확장 및 최소 투명도 보정
         if (dist <= 250) {
           const angle = Math.max(Math.min((center - itemCenter) / 5, 50), -50);
           item.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
@@ -272,6 +278,9 @@ function initDatePicker() {
     }
   }
 
+  // ============================================================
+  // 6. 유틸리티 (요일 변수 매핑 적용)
+  // ============================================================
   function getWheelValue(col) {
     const center = col.scrollTop + col.offsetHeight / 2;
     let closest = null,
@@ -291,9 +300,14 @@ function initDatePicker() {
       m = getWheelValue(ui.cols.month),
       d = getWheelValue(ui.cols.day);
     if (!y || !m || !d) return;
+
+    const dateObj = new Date(y, m - 1, d);
     const dateStr = `${y}년 ${String(m).padStart(2, "0")}월 ${String(d).padStart(2, "0")}일`;
-    const dayIdx = new Date(y, m - 1, d).getDay();
-    state.activeInput.value = `${dateStr} ${CONFIG.locale.days[dayIdx]}`;
+
+    // 개별 변수 매핑 함수 사용
+    const dayName = getDayName(dateObj);
+
+    state.activeInput.value = `${dateStr} ${dayName}`;
     closeSheet();
   }
 
@@ -311,8 +325,10 @@ function initDatePicker() {
   function validateInput(input) {
     const d = parseDate(input.value);
     if (d) {
+      const dateObj = new Date(d.y, d.m - 1, d.d);
       const str = `${d.y}년 ${String(d.m).padStart(2, "0")}월 ${String(d.d).padStart(2, "0")}일`;
-      input.value = `${str} ${CONFIG.locale.days[new Date(d.y, d.m - 1, d.d).getDay()]}`;
+      const dayName = getDayName(dateObj);
+      input.value = `${str} ${dayName}`;
     }
   }
 
