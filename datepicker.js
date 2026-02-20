@@ -84,10 +84,11 @@ function initDatePicker() {
     ui.cols.month = document.querySelector(".month-col");
     ui.cols.day = document.querySelector(".day-col");
 
-    // 표준 리스트박스 역할 부여 (순차 탐색용)
+    // [수정] 부모 컬럼에서 tabindex를 제거하여 초점이 박스 상단에 걸리지 않게 합니다.
     [ui.cols.year, ui.cols.month, ui.cols.day].forEach((col, i) => {
       if (col) {
         col.setAttribute("role", "listbox");
+        col.removeAttribute("tabindex"); // 이 부분이 초점 튀기를 방지하는 핵심입니다.
         const labels = [
           CONFIG.locale.yearAriaLabel,
           CONFIG.locale.monthAriaLabel,
@@ -203,18 +204,21 @@ function initDatePicker() {
       li.textContent = i + label;
       li.setAttribute("data-val", i);
       li.setAttribute("role", "option");
-      li.setAttribute("tabindex", "0"); // 스와이프 시 항목마다 초점 이동 가능
+      li.setAttribute("tabindex", "0"); // 개별 항목이 포커스를 직접 받게 함
 
-      // 초기 선택 상태 표시
       if (i === current) {
         li.classList.add("selected");
         li.setAttribute("aria-selected", "true");
         targetItem = li;
       }
 
-      // 항목 클릭 또는 톡백 초점 이동 시 중앙 정렬
-      const moveToCenter = () =>
-        li.scrollIntoView({ block: "center", behavior: "smooth" });
+      // 포커스 시 중앙 이동 로직은 유지하되, 브라우저의 기본 포커스 동작을 방해하지 않음
+      const moveToCenter = () => {
+        if (!state.isScrolling) {
+          // 사용자가 직접 스크롤 중이 아닐 때만
+          li.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+      };
       li.addEventListener("click", moveToCenter);
       li.addEventListener("focus", moveToCenter);
 
@@ -222,6 +226,7 @@ function initDatePicker() {
     }
     ul.appendChild(fragment);
 
+    // 스크롤 리스너 (기존과 동일)
     if (!col.dataset.hasScroll) {
       col.addEventListener(
         "scroll",
@@ -235,7 +240,7 @@ function initDatePicker() {
       col.dataset.hasScroll = "true";
     }
 
-    // 초기 위치 잡기
+    // 초기 위치 보정
     if (targetItem) {
       setTimeout(() => {
         targetItem.scrollIntoView({ block: "center", behavior: "auto" });
@@ -256,7 +261,7 @@ function initDatePicker() {
         const itemCenter = item.offsetTop + item.offsetHeight / 2;
         const dist = Math.abs(center - itemCenter);
 
-        // 1. 선택 상태 업데이트
+        // [A11y 핵심] Selected 상태 업데이트 (톡백이 읽어주는 기준)
         if (dist < 20) {
           item.classList.add("selected");
           item.setAttribute("aria-selected", "true");
@@ -265,21 +270,16 @@ function initDatePicker() {
           item.setAttribute("aria-selected", "false");
         }
 
-        // 2. [수정] 3D 효과 및 투명도 계산 범위 확장
-        // 가시 거리(150 -> 250)를 넓혀서 미리 요소들이 보이게 합니다.
+        // [성능 및 가시성 보정]
+        // visibility: hidden을 제거하여 접근성 트리가 재구성되는 것을 막습니다.
         if (dist <= 250) {
           const angle = Math.max(Math.min((center - itemCenter) / 5, 50), -50);
-          // translateZ(0)을 추가하여 GPU 레이어를 유지합니다.
           item.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
-
-          // 최소 투명도를 0.1 정도로 유지하여 갑자기 나타나는 느낌을 없앱니다.
-          const opacity = Math.max(1 - Math.pow(dist / 250, 2), 0.1);
-          item.style.opacity = opacity;
-          item.style.visibility = "visible";
+          item.style.opacity = Math.max(1 - Math.pow(dist / 250, 2), 0.1);
+          item.style.pointerEvents = "auto";
         } else {
-          // 아주 먼 요소만 숨김 처리
           item.style.opacity = "0";
-          item.style.visibility = "hidden";
+          item.style.pointerEvents = "none"; // 클릭은 안 되지만 트리에선 유지
         }
       });
       state.isTicking = false;
