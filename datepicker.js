@@ -1,22 +1,27 @@
 /**
- * [The Perfect Master - Revision] Ultimate Date Picker
- * 1. 톡백 공지: aria-live 강제 갱신 로직으로 휠 정착 시 "N월이 선택되었습니다" 완벽 공지
- * 2. 클릭 이동: wheel-item 클릭 시 즉시 중앙 이동 및 선택
- * 3. 초기 상태: 시트 오픈 시 즉시 .selected 적용 및 위치 보정
- * 4. 포커스 제어: 시트 오픈 시 즉시 진입 & 내부 포커스 트랩 작동
- * 5. UX 최적화: 인풋 복귀 시 모바일 키패드 팝업 차단
+ * [Final Master - TalkBack Item Focus Version]
+ * 1. 톡백 탐색: 모든 wheel-item을 개별적으로 탐색하고 선택 가능 (role="option")
+ * 2. 연도 범위: 현재 연도 기준 5년 전 ~ 현재 연도까지
+ * 3. 톡백 공지: 휠 정착 시 "N월이 선택되었습니다" 강제 공지
+ * 4. 초기 상태: 시트 오픈 시 즉시 .selected 적용 및 위치 보정
+ * 5. UX 최적화: 클릭 이동 및 인풋 복귀 시 모바일 키패드 팝업 차단
  */
 document.addEventListener("DOMContentLoaded", initDatePicker);
 
 function initDatePicker() {
+  // ============================================================
+  // 1. [핵심 설정] CONFIG
+  // ============================================================
+  const currentYear = new Date().getFullYear();
   const CONFIG = {
-    minYear: new Date().getFullYear() - 50,
-    maxYear: new Date().getFullYear() + 50,
+    minYear: currentYear - 5, // 5년 전부터
+    maxYear: currentYear, // 현재까지
     manualInput: true,
     showDayOfWeek: true,
     autoDayAdjust: true,
     enterToSelect: true,
     useMockData: true,
+
     locale: {
       yearSuffix: "년",
       monthSuffix: "월",
@@ -30,9 +35,9 @@ function initDatePicker() {
         "금요일",
         "토요일",
       ],
-      yearAriaLabel: "연도 선택",
-      monthAriaLabel: "월 선택",
-      dayAriaLabel: "일 선택",
+      yearAriaLabel: "연도 선택 리스트",
+      monthAriaLabel: "월 선택 리스트",
+      dayAriaLabel: "일 선택 리스트",
     },
   };
 
@@ -82,10 +87,11 @@ function initDatePicker() {
     ui.cols.month = document.querySelector(".month-col");
     ui.cols.day = document.querySelector(".day-col");
 
+    // [A11y] 개별 항목 탐색을 위해 컬럼을 listbox로 설정
     [ui.cols.year, ui.cols.month, ui.cols.day].forEach((col, i) => {
       if (col) {
         col.setAttribute("tabindex", "0");
-        col.setAttribute("role", "spinbutton");
+        col.setAttribute("role", "listbox");
         const labels = [
           CONFIG.locale.yearAriaLabel,
           CONFIG.locale.monthAriaLabel,
@@ -95,10 +101,10 @@ function initDatePicker() {
       }
     });
 
-    // [A11y] 스크린리더 공지 영역 (aria-atomic 추가로 전체 문장 읽기 보장)
+    // [A11y] 스크린리더 공지 영역
     state.liveRegion = document.createElement("div");
     state.liveRegion.className = "sr-only";
-    state.liveRegion.setAttribute("aria-live", "assertive"); // 조작 직후 즉시 읽도록 assertive 설정
+    state.liveRegion.setAttribute("aria-live", "assertive");
     state.liveRegion.setAttribute("aria-atomic", "true");
     document.body.appendChild(state.liveRegion);
 
@@ -107,17 +113,12 @@ function initDatePicker() {
     ui.btnDone.addEventListener("click", confirmSelection);
   }
 
-  /**
-   * [speak - 핵심 수정]
-   * 톡백이 변화를 확실히 감지하도록 기존 텍스트를 지웠다가 채워넣는 트릭을 사용합니다.
-   */
   function speak(msg) {
     if (state.announcementTimer) clearTimeout(state.announcementTimer);
-
     if (state.liveRegion) {
-      state.liveRegion.textContent = ""; // 1. 먼저 비움
+      state.liveRegion.textContent = "";
       state.announcementTimer = setTimeout(() => {
-        state.liveRegion.textContent = msg; // 2. 50ms 뒤에 채움 (톡백이 변화를 감지함)
+        state.liveRegion.textContent = msg;
       }, 50);
     }
   }
@@ -130,7 +131,7 @@ function initDatePicker() {
     state.activeInput = input;
 
     const d = parseDate(input.value) || {
-      y: new Date().getFullYear(),
+      y: currentYear,
       m: new Date().getMonth() + 1,
       d: new Date().getDate(),
     };
@@ -156,7 +157,6 @@ function initDatePicker() {
     ui.overlay.classList.add("is-active");
     ui.sheet.addEventListener("keydown", trapFocus);
 
-    // 열리자마자 시트 내부로 포커스
     setTimeout(() => {
       ui.sheet.focus();
     }, 100);
@@ -199,12 +199,14 @@ function initDatePicker() {
   }
 
   // ============================================================
-  // 5. 휠 렌더링 (Selected 클래스 & 클릭 이벤트 보구)
+  // 5. 휠 렌더링 (개별 항목 탐색 최적화)
   // ============================================================
   function renderWheel(col, min, max, current, label) {
     const ul = col.querySelector(".wheel-list");
     while (ul.firstChild) ul.removeChild(ul.firstChild);
-    ul.setAttribute("aria-hidden", "true");
+
+    // 톡백 탐색을 위해 aria-hidden 해제
+    ul.removeAttribute("aria-hidden");
 
     const fragment = document.createDocumentFragment();
     let targetItem = null;
@@ -214,15 +216,25 @@ function initDatePicker() {
       li.className = "wheel-item";
       li.textContent = i + label;
       li.setAttribute("data-val", i);
+      li.setAttribute("role", "option");
 
-      // [보구] 초기 생성 시 selected 부여
+      /**
+       * [톡백 최적화]
+       * 모든 항목에 tabindex="-1"을 주어 개별 탐색이 가능하게 합니다.
+       * 톡백 초점이 오면 해당 항목을 중앙으로 스크롤합니다.
+       */
+      li.setAttribute("tabindex", "-1");
+      li.addEventListener("focus", () => {
+        li.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+
       if (i === current) {
         li.classList.add("selected");
         li.setAttribute("aria-selected", "true");
         targetItem = li;
       }
 
-      // [보구] 클릭 시 해당 위치로 이동 및 선택
+      // 클릭 시 해당 위치로 이동
       li.addEventListener("click", () => {
         li.scrollIntoView({ block: "center", behavior: "smooth" });
       });
@@ -249,7 +261,6 @@ function initDatePicker() {
       col.dataset.hasKeyboard = "true";
     }
 
-    // [보구] 위치 즉시 고정
     if (targetItem) {
       setTimeout(() => {
         col.scrollTop =
@@ -276,7 +287,6 @@ function initDatePicker() {
           : activeCol === ui.cols.month
             ? "월"
             : "일";
-      // [공지] 휠 정착 시 문구 출력
       speak(`${currentValue}${suffix}이 선택되었습니다.`);
     }
 
@@ -305,9 +315,10 @@ function initDatePicker() {
         if (dist < 20) {
           item.classList.add("selected");
           item.setAttribute("aria-selected", "true");
-          col.setAttribute("aria-valuetext", item.textContent);
+          col.setAttribute("aria-activedescendant", item.id);
         } else {
           item.classList.remove("selected");
+          item.setAttribute("aria-selected", "false");
         }
         if (dist <= 150) {
           const angle = Math.max(Math.min((center - itemCenter) / 5, 50), -50);
@@ -360,7 +371,8 @@ function initDatePicker() {
       m = getWheelValue(ui.cols.month),
       d = getWheelValue(ui.cols.day);
     const dateStr = `${y}년 ${String(m).padStart(2, "0")}월 ${String(d).padStart(2, "0")}일`;
-    state.activeInput.value = `${dateStr} ${CONFIG.locale.days[new Date(y, m - 1, d).getDay()]}`;
+    const dayOfWeek = CONFIG.locale.days[new Date(y, m - 1, d).getDay()];
+    state.activeInput.value = `${dateStr} ${dayOfWeek}`;
     closeSheet();
   }
 
@@ -379,7 +391,9 @@ function initDatePicker() {
     const d = parseDate(input.value);
     if (d) {
       const str = `${d.y}년 ${String(d.m).padStart(2, "0")}월 ${String(d.d).padStart(2, "0")}일`;
-      input.value = `${str} ${CONFIG.locale.days[new Date(d.y, d.m - 1, d.d).getDay()]}`;
+      const dayOfWeek =
+        CONFIG.locale.days[new Date(d.y, d.m - 1, d.d).getDay()];
+      input.value = `${str} ${dayOfWeek}`;
     }
   }
 
