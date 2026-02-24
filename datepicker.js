@@ -22,6 +22,7 @@ function initDatePicker() {
     activeFormat: "",
     scrollTimer: null,
     lastFocusedElement: null,
+    announcementTimer: null,
   };
 
   const ui = {
@@ -30,11 +31,13 @@ function initDatePicker() {
     btnDone: null,
     btnClose: null,
     pickerArea: null,
+    liveRegion: null,
     colMap: {},
   };
 
   function setup() {
     cacheUI();
+    setupA11y();
     bindInputEvents();
     bindSheetEvents();
   }
@@ -45,6 +48,16 @@ function initDatePicker() {
     ui.btnDone = document.querySelector(".btn-done");
     ui.btnClose = document.querySelector(".btn-close");
     ui.pickerArea = document.querySelector(".picker-area");
+  }
+
+  function setupA11y() {
+    // 톡백 공지용 Live Region
+    const liveRegion = document.createElement("div");
+    liveRegion.className = "sr-only";
+    liveRegion.setAttribute("aria-live", "polite"); // assertive에서 polite로 변경하여 너무 잦은 끊김 방지
+    liveRegion.setAttribute("aria-atomic", "true");
+    document.body.appendChild(liveRegion);
+    ui.liveRegion = liveRegion;
   }
 
   function bindInputEvents() {
@@ -133,34 +146,15 @@ function initDatePicker() {
     });
   }
 
-  // ⭐ [A11y 최적화] 컬럼을 '스핀버튼'으로 만들어 모바일 스와이프 조작 지원
+  // ⭐ [A11y 변경] 컨테이너가 아닌 ul 요소 자체를 스크린 리더의 '목록상자(listbox)'로 선언
   function createWheelColumn(colId, def) {
     const colDiv = document.createElement("div");
     colDiv.className = `wheel-col ${colId}-col`;
 
-    // 스크린 리더용 속성 부여
-    colDiv.setAttribute("role", "spinbutton");
-    colDiv.setAttribute("aria-label", def.label);
-    colDiv.setAttribute("aria-valuemin", def.min);
-    colDiv.setAttribute("aria-valuemax", def.max);
-    colDiv.setAttribute("tabindex", "0"); // 탭(또는 스와이프)으로 포커스 가능하도록 설정
-
-    // 스크린 리더가 스와이프할 때 발생하는 방향키 이벤트 대응
-    colDiv.addEventListener("keydown", (e) => {
-      const itemHeight = 40; // var(--item-height)
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        colDiv.scrollBy({ top: itemHeight, behavior: "smooth" }); // 값 증가 (아래로 스크롤)
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault();
-        colDiv.scrollBy({ top: -itemHeight, behavior: "smooth" }); // 값 감소 (위로 스크롤)
-      }
-    });
-
     const ul = document.createElement("ul");
     ul.className = "wheel-list";
-    // 스크린 리더 사용자가 개별 항목(li)을 100번씩 쓸어넘기지 않도록 숨김 처리
-    ul.setAttribute("aria-hidden", "true");
+    ul.setAttribute("role", "listbox");
+    ul.setAttribute("aria-label", def.label);
 
     colDiv.appendChild(ul);
     return colDiv;
@@ -181,15 +175,20 @@ function initDatePicker() {
       li.textContent = displayNum + suffix;
       li.dataset.val = i;
 
+      // ⭐ [A11y 변경] 각각의 li를 선택 가능한 '옵션(option)'으로 선언
+      li.setAttribute("role", "option");
+
       if (i === current) {
         li.classList.add("selected");
+        li.setAttribute("aria-selected", "true");
+        li.setAttribute("tabindex", "0"); // 중앙 항목만 포커스 가능하도록
         targetItem = li;
-
-        // 초기 렌더링 시 현재 값을 스핀버튼에 알림
-        colDiv.setAttribute("aria-valuenow", i);
-        colDiv.setAttribute("aria-valuetext", li.textContent);
+      } else {
+        li.setAttribute("aria-selected", "false");
+        li.setAttribute("tabindex", "-1");
       }
 
+      // 톡백 사용자가 특정 연도에서 더블 탭(클릭)을 하면 중앙으로 스크롤됨
       li.addEventListener("click", () => {
         li.scrollIntoView({ block: "center", behavior: "smooth" });
       });
@@ -251,15 +250,19 @@ function initDatePicker() {
     });
   }
 
-  // ⭐ [A11y 최적화] 개별 아이템의 tabindex/aria-selected는 제거됨 (스핀버튼이 역할 대행)
+  // ⭐ [A11y 변경] 스크롤 위치에 따라 중앙에 온 요소의 aria-selected 값을 동적으로 변경
   function applyItemStyle(item, center, itemCenter, dist) {
     if (dist < 20) {
       if (!item.classList.contains("selected")) {
         item.classList.add("selected");
+        item.setAttribute("aria-selected", "true");
+        item.setAttribute("tabindex", "0");
       }
     } else {
       if (item.classList.contains("selected")) {
         item.classList.remove("selected");
+        item.setAttribute("aria-selected", "false");
+        item.setAttribute("tabindex", "-1");
       }
     }
 
@@ -279,13 +282,8 @@ function initDatePicker() {
     if (activeValue !== null) {
       const activeId = Object.keys(ui.colMap).find((key) => ui.colMap[key] === activeCol);
       const def = CONFIG.WHEEL_DEFS[activeId];
-      if (def) {
-        // ⭐ [A11y 최적화] 스크롤이 끝날 때마다 스핀버튼의 속성을 갱신하면
-        // 모바일 스크린 리더가 변경된 값(예: "2026년")을 자동으로 읽어줍니다.
-        const displayNum = activeId !== "year" ? String(activeValue).padStart(2, "0") : activeValue;
-        activeCol.setAttribute("aria-valuenow", activeValue);
-        activeCol.setAttribute("aria-valuetext", `${displayNum}${def.suffix}`);
-      }
+      // ⭐ 사용자가 휠을 돌리다가 멈추면 해당 값을 읽어주어 확신을 줌
+      if (def) speak(`${activeValue}${def.suffix} 선택됨`);
     }
 
     adjustDaysInMonth(activeCol);
@@ -410,9 +408,18 @@ function initDatePicker() {
     return formatStr.replace(regex, (match) => map[match]);
   }
 
+  function speak(msg) {
+    if (state.announcementTimer) clearTimeout(state.announcementTimer);
+    if (ui.liveRegion) {
+      ui.liveRegion.textContent = "";
+      state.announcementTimer = setTimeout(() => {
+        ui.liveRegion.textContent = msg;
+      }, 50);
+    }
+  }
+
   function trapFocus(e) {
     if (e.key !== "Tab") return;
-    // 컬럼(wheel-col)에도 tabindex="0"이 부여되어 있어 자연스럽게 탭 이동이 순환됩니다.
     const focusables = ui.sheet.querySelectorAll('button, [tabindex="0"]');
     if (focusables.length === 0) return;
 
