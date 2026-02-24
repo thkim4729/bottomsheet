@@ -40,11 +40,21 @@
       </div>
       <br />
 
-      <h3 class="title">알람 설정 (시/분)</h3>
+      <h3 class="title">알람 설정 (12시간제)</h3>
       <div class="input-group date_picker">
-        <div class="picker-wrapper" data-columns="hour,minute" data-format="A hh:mm">
+        <div class="picker-wrapper" data-columns="ampm,hour,minute" data-format="A hh:mm">
           <input type="text" class="picker-input" placeholder="시간 선택" readonly />
-          <button type="button" class="picker-icon-btn" aria-label="시간 선택">⏰</button>
+          <button type="button" class="picker-icon-btn">⏰</button>
+        </div>
+      </div>
+
+      <br />
+
+      <h3 class="title">회의 시간 (24시간제)</h3>
+      <div class="input-group date_picker theme-orange">
+        <div class="picker-wrapper" data-columns="month,day,hour,minute" data-format="M월 D일 HH:mm">
+          <input type="text" class="picker-input" placeholder="날짜 및 시간 선택" readonly />
+          <button type="button" class="picker-icon-btn">📅</button>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ function initDatePicker() {
       year: { min: currentYear - 50, max: currentYear + 10, suffix: "년", label: "연도" },
       month: { min: 1, max: 12, suffix: "월", label: "월" },
       day: { min: 1, max: 31, suffix: "일", label: "일" },
+      ampm: { min: 0, max: 1, items: ["오전", "오후"], suffix: "", label: "오전/오후" },
       hour: { min: 0, max: 23, suffix: "시", label: "시간" },
       minute: { min: 0, max: 59, suffix: "분", label: "분" },
     },
@@ -51,10 +52,9 @@ function initDatePicker() {
   }
 
   function setupA11y() {
-    // 톡백 공지용 Live Region
     const liveRegion = document.createElement("div");
     liveRegion.className = "sr-only";
-    liveRegion.setAttribute("aria-live", "polite"); // assertive에서 polite로 변경하여 너무 잦은 끊김 방지
+    liveRegion.setAttribute("aria-live", "polite");
     liveRegion.setAttribute("aria-atomic", "true");
     document.body.appendChild(liveRegion);
     ui.liveRegion = liveRegion;
@@ -98,6 +98,14 @@ function initDatePicker() {
     state.activeInput = input;
     state.activeColumns = activeColumns;
     state.activeFormat = formatStr;
+
+    if (activeColumns.includes("ampm")) {
+      CONFIG.WHEEL_DEFS.hour.min = 1;
+      CONFIG.WHEEL_DEFS.hour.max = 12;
+    } else {
+      CONFIG.WHEEL_DEFS.hour.min = 0;
+      CONFIG.WHEEL_DEFS.hour.max = 23;
+    }
 
     buildWheels(input.value);
 
@@ -146,7 +154,6 @@ function initDatePicker() {
     });
   }
 
-  // ⭐ [A11y 변경] 컨테이너가 아닌 ul 요소 자체를 스크린 리더의 '목록상자(listbox)'로 선언
   function createWheelColumn(colId, def) {
     const colDiv = document.createElement("div");
     colDiv.className = `wheel-col ${colId}-col`;
@@ -171,27 +178,31 @@ function initDatePicker() {
       const li = document.createElement("li");
       li.className = "wheel-item";
 
-      const displayNum = id !== "year" ? String(i).padStart(2, "0") : i;
+      // ⭐ 수정된 부분: 분(minute)에만 0을 채우고, 시간(hour) 등 나머지는 그대로 둡니다.
+      let displayNum;
+      if (id === "ampm") {
+        displayNum = CONFIG.WHEEL_DEFS.ampm.items[i];
+      } else if (id === "minute") {
+        displayNum = String(i).padStart(2, "0"); // 분은 00, 01 표기 유지
+      } else {
+        displayNum = i; // 연, 월, 일, 시간은 앞의 0 제거 (1, 2, 3...)
+      }
+
       li.textContent = displayNum + suffix;
       li.dataset.val = i;
-
-      // ⭐ [A11y 변경] 각각의 li를 선택 가능한 '옵션(option)'으로 선언
       li.setAttribute("role", "option");
+      li.setAttribute("tabindex", "0");
 
       if (i === current) {
         li.classList.add("selected");
         li.setAttribute("aria-selected", "true");
-        li.setAttribute("tabindex", "0"); // 중앙 항목만 포커스 가능하도록
         targetItem = li;
       } else {
         li.setAttribute("aria-selected", "false");
-        li.setAttribute("tabindex", "-1");
       }
 
-      // 톡백 사용자가 특정 연도에서 더블 탭(클릭)을 하면 중앙으로 스크롤됨
-      li.addEventListener("click", () => {
-        li.scrollIntoView({ block: "center", behavior: "smooth" });
-      });
+      li.addEventListener("click", () => li.scrollIntoView({ block: "center", behavior: "smooth" }));
+      li.addEventListener("focus", () => li.scrollIntoView({ block: "center", behavior: "smooth" }));
 
       fragment.appendChild(li);
     }
@@ -209,7 +220,6 @@ function initDatePicker() {
 
   function attachScrollEvent(colDiv) {
     if (colDiv.dataset.hasScroll) return;
-
     colDiv.addEventListener(
       "scroll",
       () => {
@@ -219,7 +229,6 @@ function initDatePicker() {
       },
       { passive: true },
     );
-
     colDiv.dataset.hasScroll = "true";
   }
 
@@ -242,7 +251,6 @@ function initDatePicker() {
       items.forEach((item, index) => {
         const itemCenter = paddingTop + index * itemHeight + itemHeight / 2;
         const dist = Math.abs(center - itemCenter);
-
         applyItemStyle(item, center, itemCenter, dist);
       });
 
@@ -250,19 +258,16 @@ function initDatePicker() {
     });
   }
 
-  // ⭐ [A11y 변경] 스크롤 위치에 따라 중앙에 온 요소의 aria-selected 값을 동적으로 변경
   function applyItemStyle(item, center, itemCenter, dist) {
     if (dist < 20) {
       if (!item.classList.contains("selected")) {
         item.classList.add("selected");
         item.setAttribute("aria-selected", "true");
-        item.setAttribute("tabindex", "0");
       }
     } else {
       if (item.classList.contains("selected")) {
         item.classList.remove("selected");
         item.setAttribute("aria-selected", "false");
-        item.setAttribute("tabindex", "-1");
       }
     }
 
@@ -271,9 +276,7 @@ function initDatePicker() {
       item.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
       item.style.opacity = Math.max(1 - Math.pow(dist / 250, 2), 0.1);
     } else {
-      if (item.style.opacity !== "0") {
-        item.style.opacity = "0";
-      }
+      if (item.style.opacity !== "0") item.style.opacity = "0";
     }
   }
 
@@ -282,8 +285,10 @@ function initDatePicker() {
     if (activeValue !== null) {
       const activeId = Object.keys(ui.colMap).find((key) => ui.colMap[key] === activeCol);
       const def = CONFIG.WHEEL_DEFS[activeId];
-      // ⭐ 사용자가 휠을 돌리다가 멈추면 해당 값을 읽어주어 확신을 줌
-      if (def) speak(`${activeValue}${def.suffix} 선택됨`);
+      if (def) {
+        const textValue = activeId === "ampm" ? def.items[activeValue] : activeValue;
+        speak(`${textValue}${def.suffix} 선택됨`);
+      }
     }
 
     adjustDaysInMonth(activeCol);
@@ -312,12 +317,15 @@ function initDatePicker() {
 
   function parseInitialValues(inputValue) {
     const nums = inputValue.match(/\d+/g) || [];
+    const isPMText = inputValue.includes("오후") || inputValue.toLowerCase().includes("pm");
     const now = new Date();
     const values = {};
     let numIndex = 0;
 
     state.activeColumns.forEach((colId) => {
-      if (nums[numIndex]) {
+      if (colId === "ampm") {
+        values[colId] = isPMText ? 1 : 0;
+      } else if (nums[numIndex]) {
         values[colId] = parseInt(nums[numIndex], 10);
         numIndex++;
       } else {
@@ -332,7 +340,9 @@ function initDatePicker() {
             values[colId] = now.getDate();
             break;
           case "hour":
-            values[colId] = now.getHours();
+            let h = now.getHours();
+            if (state.activeColumns.includes("ampm")) h = h % 12 || 12;
+            values[colId] = h;
             break;
           case "minute":
             values[colId] = Math.floor(now.getMinutes() / 10) * 10;
@@ -376,12 +386,24 @@ function initDatePicker() {
     const y = vals.year !== undefined ? vals.year : now.getFullYear();
     const m = vals.month !== undefined ? vals.month : now.getMonth() + 1;
     const d = vals.day !== undefined ? vals.day : now.getDate();
-    const h = vals.hour !== undefined ? vals.hour : 0;
     const min = vals.minute !== undefined ? vals.minute : 0;
 
+    let h24 = now.getHours();
+    if (vals.hour !== undefined) {
+      if (vals.ampm !== undefined) {
+        if (vals.ampm === 1) {
+          h24 = vals.hour === 12 ? 12 : vals.hour + 12;
+        } else {
+          h24 = vals.hour === 12 ? 0 : vals.hour;
+        }
+      } else {
+        h24 = vals.hour;
+      }
+    }
+
     const dateObj = new Date(y, m - 1, d);
-    const isPM = h >= 12;
-    const h12 = h % 12 || 12;
+    const isPM = h24 >= 12;
+    const h12 = h24 % 12 || 12;
 
     const map = {
       YYYY: y,
@@ -392,8 +414,8 @@ function initDatePicker() {
       D: d,
       dddd: CONFIG.locale[dateObj.getDay()] + "요일",
       ddd: CONFIG.locale[dateObj.getDay()],
-      HH: String(h).padStart(2, "0"),
-      H: h,
+      HH: String(h24).padStart(2, "0"),
+      H: h24,
       hh: String(h12).padStart(2, "0"),
       h: h12,
       mm: String(min).padStart(2, "0"),
