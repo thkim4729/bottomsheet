@@ -1,6 +1,3 @@
-/* =========================================
-   1. 테마 및 설정 변수
-   ========================================= */
 :root {
   --picker-color: #007aff;
   --picker-height: 220px;
@@ -27,9 +24,6 @@ body {
   background-color: #f2f2f7;
 }
 
-/* =========================================
-   2. 입력 그룹 및 에러 스타일
-   ========================================= */
 .container {
   width: 100%;
   max-width: 500px;
@@ -58,15 +52,10 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.2s ease;
   cursor: pointer;
 }
 .picker-wrapper:hover {
   border-color: var(--picker-color);
-}
-.picker-wrapper.input-error {
-  border-color: #ff3b30;
-  background-color: #fff5f5;
 }
 
 .picker-input {
@@ -88,25 +77,6 @@ body {
   align-items: center;
 }
 
-.error-text {
-  width: 100%;
-  color: #ff3b30;
-  font-size: 13px;
-  margin-top: 4px;
-  display: none;
-  opacity: 0;
-  transform: translateY(-5px);
-  transition: all 0.2s;
-}
-.error-text.show {
-  display: block;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* =========================================
-   3. 바텀 시트 및 휠 레이아웃
-   ========================================= */
 .picker-overlay {
   position: fixed;
   top: 0;
@@ -232,15 +202,14 @@ body {
   will-change: transform, opacity;
   backface-visibility: hidden;
   transform-style: preserve-3d;
-  transition:
-    opacity 0.2s ease-out,
-    transform 0.1s ease-out;
+  /* 스크롤 버벅임 해결을 위해 transition을 완전히 제거했습니다. */
 }
 .wheel-item.selected {
   color: #000;
   font-weight: 600;
   font-size: 19px;
 }
+
 .sr-only {
   position: absolute;
   width: 1px;
