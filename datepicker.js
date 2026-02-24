@@ -8,7 +8,6 @@ function initDatePicker() {
     autoDayAdjust: true,
     locale: ["일", "월", "화", "수", "목", "금", "토"],
     WHEEL_DEFS: {
-      // ⭐ 연도 범위를 올해 기준 5년 전으로 수정했습니다. (미래 연도가 필요 없다면 max: currentYear 로 변경하세요)
       year: { min: currentYear - 5, max: currentYear + 5, suffix: "년", label: "연도" },
       month: { min: 1, max: 12, suffix: "월", label: "월" },
       day: { min: 1, max: 31, suffix: "일", label: "일" },
@@ -168,8 +167,6 @@ function initDatePicker() {
     return colDiv;
   }
 
-  // ⭐ [핵심 해결] 3D 요소의 바운딩 박스 오차를 무시하고,
-  // 순서(index)를 기반으로 완벽한 스크롤 위치를 직접 계산합니다.
   function scrollToPerfectCenter(colDiv, li, smooth = true) {
     const itemHeight = li.offsetHeight || 40;
     const index = Array.from(li.parentNode.children).indexOf(li);
@@ -187,8 +184,16 @@ function initDatePicker() {
     let targetItem = null;
 
     for (let i = min; i <= max; i++) {
+      // 1. 부모 래퍼 (순수 2D, 접근성 담당)
       const li = document.createElement("li");
       li.className = "wheel-item";
+      li.dataset.val = i;
+      li.setAttribute("role", "option");
+      li.setAttribute("tabindex", "0");
+
+      // 2. 자식 요소 (시각적 3D 애니메이션 담당) ⭐ 새로 추가됨
+      const textDiv = document.createElement("div");
+      textDiv.className = "wheel-text";
 
       let displayNum;
       if (id === "ampm") {
@@ -199,10 +204,8 @@ function initDatePicker() {
         displayNum = i;
       }
 
-      li.textContent = displayNum + suffix;
-      li.dataset.val = i;
-      li.setAttribute("role", "option");
-      li.setAttribute("tabindex", "0");
+      textDiv.textContent = displayNum + suffix;
+      li.appendChild(textDiv); // li 안에 div를 넣음
 
       if (i === current) {
         li.classList.add("selected");
@@ -212,7 +215,6 @@ function initDatePicker() {
         li.setAttribute("aria-selected", "false");
       }
 
-      // 톡백 및 클릭 시 정확한 수학적 위치로 이동
       li.addEventListener("click", () => scrollToPerfectCenter(colDiv, li, true));
       li.addEventListener("focus", () => scrollToPerfectCenter(colDiv, li, true));
 
@@ -270,6 +272,7 @@ function initDatePicker() {
     });
   }
 
+  // ⭐ 자식 요소인 `.wheel-text`에만 3D 애니메이션을 적용하도록 변경
   function applyItemStyle(item, center, itemCenter, dist) {
     if (dist < 20) {
       if (!item.classList.contains("selected")) {
@@ -283,12 +286,15 @@ function initDatePicker() {
       }
     }
 
+    const textEl = item.querySelector(".wheel-text");
+    if (!textEl) return;
+
     if (dist <= 250) {
       const angle = Math.max(Math.min((center - itemCenter) / 5, 50), -50);
-      item.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
-      item.style.opacity = Math.max(1 - Math.pow(dist / 250, 2), 0.1);
+      textEl.style.transform = `rotateX(${-angle}deg) translateZ(0)`;
+      textEl.style.opacity = Math.max(1 - Math.pow(dist / 250, 2), 0.1);
     } else {
-      if (item.style.opacity !== "0") item.style.opacity = "0";
+      if (textEl.style.opacity !== "0") textEl.style.opacity = "0";
     }
   }
 

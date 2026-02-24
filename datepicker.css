@@ -194,17 +194,27 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 17px;
-  color: #999;
   cursor: pointer;
   scroll-snap-align: center;
+}
+
+.wheel-item.selected {
+  color: #000;
+  font-weight: 600;
+  font-size: 19px;
+}
+
+.wheel-text {
+  font-size: 17px;
+  color: #999;
   line-height: 1;
   will-change: transform, opacity;
   backface-visibility: hidden;
   transform-style: preserve-3d;
-  /* 스크롤 버벅임 해결을 위해 transition을 완전히 제거했습니다. */
+  pointer-events: none; /* 클릭은 부모인 li가 처리하도록 통과시킴 */
 }
-.wheel-item.selected {
+
+.wheel-item.selected .wheel-text {
   color: #000;
   font-weight: 600;
   font-size: 19px;
