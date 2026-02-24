@@ -7,22 +7,9 @@ function initDatePicker() {
   const CONFIG = {
     manualInput: true,
     autoDayAdjust: true,
-    locale: {
-      sun: "일",
-      mon: "월",
-      tue: "화",
-      wed: "수",
-      thu: "목",
-      fri: "금",
-      sat: "토",
-    },
+    locale: { sun: "일", mon: "월", tue: "화", wed: "수", thu: "목", fri: "금", sat: "토" },
     WHEEL_DEFS: {
-      year: {
-        min: currentYear - 5,
-        max: currentYear + 5,
-        suffix: "년",
-        label: "연도 선택",
-      },
+      year: { min: currentYear - 5, max: currentYear + 5, suffix: "년", label: "연도 선택" },
       month: { min: 1, max: 12, suffix: "월", label: "월 선택" },
       day: { min: 1, max: 31, suffix: "일", label: "일 선택" },
       hour: { min: 0, max: 23, suffix: "시", label: "시간 선택" },
@@ -146,8 +133,7 @@ function initDatePicker() {
         if (colId === "month") initVal = now.getMonth() + 1;
         if (colId === "day") initVal = now.getDate();
         if (colId === "hour") initVal = now.getHours();
-        if (colId === "minute")
-          initVal = Math.floor(now.getMinutes() / 10) * 10; // 10분 단위 예시
+        if (colId === "minute") initVal = Math.floor(now.getMinutes() / 10) * 10; // 10분 단위 예시
       }
 
       renderWheel(colDiv, def.min, def.max, initVal, def.suffix, colId);
@@ -299,32 +285,17 @@ function initDatePicker() {
     const activeValue = getWheelValue(activeCol);
     if (activeValue) {
       // 어느 휠이 선택되었는지 찾아서 안내
-      const activeId = Object.keys(ui.colMap).find(
-        (key) => ui.colMap[key] === activeCol,
-      );
+      const activeId = Object.keys(ui.colMap).find((key) => ui.colMap[key] === activeCol);
       const def = CONFIG.WHEEL_DEFS[activeId];
       if (def) speak(`${activeValue}${def.suffix}이 선택되었습니다.`);
     }
 
     // 연/월이 모두 활성화되어 있고, 일 단위가 존재할 때만 최대 일수 계산
-    if (
-      CONFIG.autoDayAdjust &&
-      vals.year &&
-      vals.month &&
-      ui.colMap.day &&
-      activeCol !== ui.colMap.day
-    ) {
+    if (CONFIG.autoDayAdjust && vals.year && vals.month && ui.colMap.day && activeCol !== ui.colMap.day) {
       const maxDay = new Date(vals.year, vals.month, 0).getDate();
       const dayCol = ui.colMap.day;
       if (dayCol && maxDay !== dayCol.querySelectorAll("li").length) {
-        renderWheel(
-          dayCol,
-          1,
-          maxDay,
-          vals.day > maxDay ? maxDay : vals.day,
-          "일",
-          "day",
-        );
+        renderWheel(dayCol, 1, maxDay, vals.day > maxDay ? maxDay : vals.day, "일", "day");
       }
     }
   }
@@ -356,8 +327,7 @@ function initDatePicker() {
       const def = CONFIG.WHEEL_DEFS[colId];
 
       if (val !== null) {
-        const displayVal =
-          colId === "year" ? val : String(val).padStart(2, "0");
+        const displayVal = colId === "year" ? val : String(val).padStart(2, "0");
         formattedStr += `${displayVal}${def.suffix} `;
       }
     });
