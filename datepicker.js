@@ -8,7 +8,8 @@ function initDatePicker() {
     autoDayAdjust: true,
     locale: ["일", "월", "화", "수", "목", "금", "토"],
     WHEEL_DEFS: {
-      year: { min: currentYear - 50, max: currentYear + 10, suffix: "년", label: "연도" },
+      // ⭐ 연도 범위를 올해 기준 5년 전으로 수정했습니다. (미래 연도가 필요 없다면 max: currentYear 로 변경하세요)
+      year: { min: currentYear - 5, max: currentYear + 5, suffix: "년", label: "연도" },
       month: { min: 1, max: 12, suffix: "월", label: "월" },
       day: { min: 1, max: 31, suffix: "일", label: "일" },
       ampm: { min: 0, max: 1, items: ["오전", "오후"], suffix: "", label: "오전/오후" },
@@ -167,6 +168,17 @@ function initDatePicker() {
     return colDiv;
   }
 
+  // ⭐ [핵심 해결] 3D 요소의 바운딩 박스 오차를 무시하고,
+  // 순서(index)를 기반으로 완벽한 스크롤 위치를 직접 계산합니다.
+  function scrollToPerfectCenter(colDiv, li, smooth = true) {
+    const itemHeight = li.offsetHeight || 40;
+    const index = Array.from(li.parentNode.children).indexOf(li);
+    colDiv.scrollTo({
+      top: index * itemHeight,
+      behavior: smooth ? "smooth" : "auto",
+    });
+  }
+
   function renderWheelItems(colDiv, min, max, current, suffix, id) {
     const ul = colDiv.querySelector(".wheel-list");
     ul.innerHTML = "";
@@ -178,14 +190,13 @@ function initDatePicker() {
       const li = document.createElement("li");
       li.className = "wheel-item";
 
-      // ⭐ 수정된 부분: 분(minute)에만 0을 채우고, 시간(hour) 등 나머지는 그대로 둡니다.
       let displayNum;
       if (id === "ampm") {
         displayNum = CONFIG.WHEEL_DEFS.ampm.items[i];
       } else if (id === "minute") {
-        displayNum = String(i).padStart(2, "0"); // 분은 00, 01 표기 유지
+        displayNum = String(i).padStart(2, "0");
       } else {
-        displayNum = i; // 연, 월, 일, 시간은 앞의 0 제거 (1, 2, 3...)
+        displayNum = i;
       }
 
       li.textContent = displayNum + suffix;
@@ -201,8 +212,9 @@ function initDatePicker() {
         li.setAttribute("aria-selected", "false");
       }
 
-      li.addEventListener("click", () => li.scrollIntoView({ block: "center", behavior: "smooth" }));
-      li.addEventListener("focus", () => li.scrollIntoView({ block: "center", behavior: "smooth" }));
+      // 톡백 및 클릭 시 정확한 수학적 위치로 이동
+      li.addEventListener("click", () => scrollToPerfectCenter(colDiv, li, true));
+      li.addEventListener("focus", () => scrollToPerfectCenter(colDiv, li, true));
 
       fragment.appendChild(li);
     }
@@ -212,7 +224,7 @@ function initDatePicker() {
 
     if (targetItem) {
       setTimeout(() => {
-        targetItem.scrollIntoView({ block: "center", behavior: "auto" });
+        scrollToPerfectCenter(colDiv, targetItem, false);
         update3D(colDiv);
       }, 0);
     }
