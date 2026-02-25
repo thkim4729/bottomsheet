@@ -19,7 +19,6 @@ function initDatePicker() {
       daySuffix: "요일",
     },
     WHEEL_DEFS: {
-      // ⭐ 연도 범위를 올해 기준 5년 전으로 제한했습니다.
       year: { min: currentYear - 5, max: currentYear + 5, suffix: "년", label: "연도" },
       month: { min: 1, max: 12, suffix: "월", label: "월" },
       day: { min: 1, max: 31, suffix: "일", label: "일" },
@@ -28,7 +27,6 @@ function initDatePicker() {
       minute: { min: 0, max: 59, suffix: "분", label: "분" },
     },
   };
-
   CONFIG.WHEEL_DEFS.ampm.items = [CONFIG.locale.am, CONFIG.locale.pm];
 
   const state = {
@@ -38,6 +36,7 @@ function initDatePicker() {
     scrollTimer: null,
     lastFocusedElement: null,
     announcementTimer: null,
+    interactionType: "touch",
   };
 
   const ui = {
@@ -105,6 +104,16 @@ function initDatePicker() {
     ui.btnClose.addEventListener("click", closeSheet);
     ui.overlay.addEventListener("click", closeSheet);
     ui.btnDone.addEventListener("click", confirmSelection);
+
+    ui.pickerArea.addEventListener("touchstart", () => (state.interactionType = "touch"), { passive: true });
+    ui.pickerArea.addEventListener("mousedown", () => (state.interactionType = "touch"));
+    ui.pickerArea.addEventListener("wheel", () => (state.interactionType = "touch"));
+
+    ui.pickerArea.addEventListener("focusin", (e) => {
+      if (e.target.classList.contains("wheel-item")) {
+        state.interactionType = "focus";
+      }
+    });
   }
 
   function openSheet(input, activeColumns, formatStr) {
@@ -151,7 +160,13 @@ function initDatePicker() {
   }
 
   function buildWheels(inputValue) {
-    ui.pickerArea.innerHTML = '<div class="highlight-bar"></div>';
+    // ⭐ innerHTML 제거: replaceChildren()과 createElement() 조합으로 교체
+    ui.pickerArea.replaceChildren();
+
+    const highlightBar = document.createElement("div");
+    highlightBar.className = "highlight-bar";
+    ui.pickerArea.appendChild(highlightBar);
+
     ui.colMap = {};
 
     const initialValues = parseInitialValues(inputValue);
@@ -168,40 +183,16 @@ function initDatePicker() {
     });
   }
 
-  // ⭐ [A11y 최고의 비급] 톡백 사용자가 한 손가락만으로도 값을 바꿀 수 있게 숨김 버튼 추가
   function createWheelColumn(colId, def) {
     const colDiv = document.createElement("div");
     colDiv.className = `wheel-col ${colId}-col`;
 
-    // 1. [스크린 리더 전용] 이전 값으로 굴리는 버튼
-    const btnPrev = document.createElement("button");
-    btnPrev.className = "sr-only"; // 화면에는 안 보이지만 톡백은 읽음
-    btnPrev.textContent = `${def.label} 이전 값으로 변경`;
-    btnPrev.addEventListener("click", () => {
-      const itemHeight = 40; // 아이템 높이만큼 위로 스크롤
-      colDiv.scrollBy({ top: -itemHeight, behavior: "smooth" });
-    });
-
-    // 2. 실제 휠 목록 (우리가 보는 부분)
     const ul = document.createElement("ul");
     ul.className = "wheel-list";
     ul.setAttribute("role", "listbox");
     ul.setAttribute("aria-label", def.label);
 
-    // 3. [스크린 리더 전용] 다음 값으로 굴리는 버튼
-    const btnNext = document.createElement("button");
-    btnNext.className = "sr-only";
-    btnNext.textContent = `${def.label} 다음 값으로 변경`;
-    btnNext.addEventListener("click", () => {
-      const itemHeight = 40; // 아이템 높이만큼 아래로 스크롤
-      colDiv.scrollBy({ top: itemHeight, behavior: "smooth" });
-    });
-
-    // 버튼 - 목록 - 버튼 순서로 조립
-    colDiv.appendChild(btnPrev);
     colDiv.appendChild(ul);
-    colDiv.appendChild(btnNext);
-
     return colDiv;
   }
 
@@ -214,9 +205,25 @@ function initDatePicker() {
     });
   }
 
+  function updateSelectedClass(colDiv) {
+    const val = colDiv.dataset.selectedValue;
+    colDiv.querySelectorAll(".wheel-item").forEach((li) => {
+      if (li.dataset.val === String(val)) {
+        li.classList.add("selected");
+        li.setAttribute("aria-selected", "true");
+      } else {
+        li.classList.remove("selected");
+        li.setAttribute("aria-selected", "false");
+      }
+    });
+  }
+
   function renderWheelItems(colDiv, min, max, current, suffix, id) {
     const ul = colDiv.querySelector(".wheel-list");
-    ul.innerHTML = "";
+    // ⭐ innerHTML 제거: 가장 모던하고 빠른 DOM 비우기 메서드 적용
+    ul.replaceChildren();
+
+    colDiv.dataset.selectedValue = current;
 
     const fragment = document.createDocumentFragment();
     let targetItem = null;
@@ -226,42 +233,43 @@ function initDatePicker() {
       li.className = "wheel-item";
       li.dataset.val = i;
       li.setAttribute("role", "option");
+      li.setAttribute("tabindex", "0");
 
       const textDiv = document.createElement("div");
       textDiv.className = "wheel-text";
 
       let displayNum;
-      if (id === "ampm") {
-        displayNum = CONFIG.WHEEL_DEFS.ampm.items[i];
-      } else if (id === "minute") {
-        displayNum = String(i).padStart(2, "0");
-      } else {
-        displayNum = i;
-      }
+      if (id === "ampm") displayNum = CONFIG.WHEEL_DEFS.ampm.items[i];
+      else if (id === "minute") displayNum = String(i).padStart(2, "0");
+      else displayNum = i;
 
       textDiv.textContent = displayNum + suffix;
       li.appendChild(textDiv);
 
-      // ⭐ 오직 선택된 항목에만 포커스(0) 부여. 나머지는 포커스 제외(-1)
-      if (i === current) {
-        li.classList.add("selected");
-        li.setAttribute("aria-selected", "true");
-        li.setAttribute("tabindex", "0");
-        targetItem = li;
-      } else {
-        li.setAttribute("aria-selected", "false");
-        li.setAttribute("tabindex", "-1");
-      }
+      if (i === current) targetItem = li;
 
-      // 클릭(더블 탭) 시 완벽한 중앙으로 이동
-      li.addEventListener("click", () => scrollToPerfectCenter(colDiv, li, true));
+      li.addEventListener("click", () => {
+        state.interactionType = "touch";
+        colDiv.dataset.selectedValue = li.dataset.val;
+        updateSelectedClass(colDiv);
+        scrollToPerfectCenter(colDiv, li, true);
+      });
 
-      // 🚨 주의: 강제 스크롤을 유발하던 focus 이벤트는 완전히 제거했습니다.
+      li.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          state.interactionType = "touch";
+          colDiv.dataset.selectedValue = li.dataset.val;
+          updateSelectedClass(colDiv);
+          scrollToPerfectCenter(colDiv, li, true);
+        }
+      });
 
       fragment.appendChild(li);
     }
 
     ul.appendChild(fragment);
+    updateSelectedClass(colDiv);
     attachScrollEvent(colDiv);
 
     if (targetItem) {
@@ -313,27 +321,6 @@ function initDatePicker() {
   }
 
   function applyItemStyle(item, center, itemCenter, dist) {
-    // ⭐ 스크롤하면서 중앙에 오는 요소에 자동으로 포커스(tabindex="0")를 넘겨줍니다.
-    if (dist < 20) {
-      if (!item.classList.contains("selected")) {
-        item.classList.add("selected");
-        item.setAttribute("aria-selected", "true");
-        item.setAttribute("tabindex", "0");
-
-        // 톡백 사용자가 현재 기둥을 탐색 중이라면, 새로 중앙에 온 값으로 초점을 자연스럽게 넘겨 읽어주도록 함
-        const activeEl = document.activeElement;
-        if (activeEl && item.parentNode.contains(activeEl) && activeEl !== item) {
-          item.focus({ preventScroll: true });
-        }
-      }
-    } else {
-      if (item.classList.contains("selected")) {
-        item.classList.remove("selected");
-        item.setAttribute("aria-selected", "false");
-        item.setAttribute("tabindex", "-1");
-      }
-    }
-
     const textEl = item.querySelector(".wheel-text");
     if (!textEl) return;
 
@@ -347,13 +334,18 @@ function initDatePicker() {
   }
 
   function handleScrollEnd(activeCol) {
-    const activeValue = getWheelValue(activeCol);
-    if (activeValue !== null) {
-      const activeId = Object.keys(ui.colMap).find((key) => ui.colMap[key] === activeCol);
-      const def = CONFIG.WHEEL_DEFS[activeId];
-      if (def) {
-        const textValue = activeId === "ampm" ? def.items[activeValue] : activeValue;
-        speak(`${textValue}${def.suffix} 선택됨`);
+    if (state.interactionType === "touch") {
+      const centerVal = getWheelValue(activeCol);
+      if (centerVal !== null) {
+        activeCol.dataset.selectedValue = centerVal;
+        updateSelectedClass(activeCol);
+
+        const activeId = Object.keys(ui.colMap).find((key) => ui.colMap[key] === activeCol);
+        const def = CONFIG.WHEEL_DEFS[activeId];
+        if (def) {
+          const textValue = activeId === "ampm" ? def.items[centerVal] : centerVal;
+          speak(`${textValue}${def.suffix} 선택됨`);
+        }
       }
     }
 
@@ -366,9 +358,9 @@ function initDatePicker() {
     const { year, month, day } = ui.colMap;
     if (!year || !month || !day || activeCol === day) return;
 
-    const yVal = getWheelValue(year);
-    const mVal = getWheelValue(month);
-    const dVal = getWheelValue(day);
+    const yVal = parseInt(year.dataset.selectedValue, 10);
+    const mVal = parseInt(month.dataset.selectedValue, 10);
+    const dVal = parseInt(day.dataset.selectedValue, 10);
 
     if (yVal && mVal) {
       const maxDay = new Date(yVal, mVal, 0).getDate();
@@ -440,7 +432,7 @@ function initDatePicker() {
   function confirmSelection() {
     const vals = {};
     state.activeColumns.forEach((colId) => {
-      vals[colId] = getWheelValue(ui.colMap[colId]);
+      vals[colId] = parseInt(ui.colMap[colId].dataset.selectedValue, 10);
     });
 
     state.activeInput.value = formatResult(vals, state.activeFormat);
