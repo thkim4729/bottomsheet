@@ -6,16 +6,30 @@ function initDatePicker() {
   const CONFIG = {
     manualInput: true,
     autoDayAdjust: true,
-    locale: ["일", "월", "화", "수", "목", "금", "토"],
+    locale: {
+      sun: "일",
+      mon: "월",
+      tue: "화",
+      wed: "수",
+      thu: "목",
+      fri: "금",
+      sat: "토",
+      am: "오전",
+      pm: "오후",
+      daySuffix: "요일",
+    },
     WHEEL_DEFS: {
+      // ⭐ 연도 범위를 올해 기준 5년 전으로 제한했습니다.
       year: { min: currentYear - 5, max: currentYear + 5, suffix: "년", label: "연도" },
       month: { min: 1, max: 12, suffix: "월", label: "월" },
       day: { min: 1, max: 31, suffix: "일", label: "일" },
-      ampm: { min: 0, max: 1, items: ["오전", "오후"], suffix: "", label: "오전/오후" },
+      ampm: { min: 0, max: 1, suffix: "", label: "오전/오후" },
       hour: { min: 0, max: 23, suffix: "시", label: "시간" },
       minute: { min: 0, max: 59, suffix: "분", label: "분" },
     },
   };
+
+  CONFIG.WHEEL_DEFS.ampm.items = [CONFIG.locale.am, CONFIG.locale.pm];
 
   const state = {
     activeInput: null,
@@ -154,16 +168,40 @@ function initDatePicker() {
     });
   }
 
+  // ⭐ [A11y 최고의 비급] 톡백 사용자가 한 손가락만으로도 값을 바꿀 수 있게 숨김 버튼 추가
   function createWheelColumn(colId, def) {
     const colDiv = document.createElement("div");
     colDiv.className = `wheel-col ${colId}-col`;
 
+    // 1. [스크린 리더 전용] 이전 값으로 굴리는 버튼
+    const btnPrev = document.createElement("button");
+    btnPrev.className = "sr-only"; // 화면에는 안 보이지만 톡백은 읽음
+    btnPrev.textContent = `${def.label} 이전 값으로 변경`;
+    btnPrev.addEventListener("click", () => {
+      const itemHeight = 40; // 아이템 높이만큼 위로 스크롤
+      colDiv.scrollBy({ top: -itemHeight, behavior: "smooth" });
+    });
+
+    // 2. 실제 휠 목록 (우리가 보는 부분)
     const ul = document.createElement("ul");
     ul.className = "wheel-list";
     ul.setAttribute("role", "listbox");
     ul.setAttribute("aria-label", def.label);
 
+    // 3. [스크린 리더 전용] 다음 값으로 굴리는 버튼
+    const btnNext = document.createElement("button");
+    btnNext.className = "sr-only";
+    btnNext.textContent = `${def.label} 다음 값으로 변경`;
+    btnNext.addEventListener("click", () => {
+      const itemHeight = 40; // 아이템 높이만큼 아래로 스크롤
+      colDiv.scrollBy({ top: itemHeight, behavior: "smooth" });
+    });
+
+    // 버튼 - 목록 - 버튼 순서로 조립
+    colDiv.appendChild(btnPrev);
     colDiv.appendChild(ul);
+    colDiv.appendChild(btnNext);
+
     return colDiv;
   }
 
@@ -184,14 +222,11 @@ function initDatePicker() {
     let targetItem = null;
 
     for (let i = min; i <= max; i++) {
-      // 1. 부모 래퍼 (순수 2D, 접근성 담당)
       const li = document.createElement("li");
       li.className = "wheel-item";
       li.dataset.val = i;
       li.setAttribute("role", "option");
-      li.setAttribute("tabindex", "0");
 
-      // 2. 자식 요소 (시각적 3D 애니메이션 담당) ⭐ 새로 추가됨
       const textDiv = document.createElement("div");
       textDiv.className = "wheel-text";
 
@@ -205,18 +240,23 @@ function initDatePicker() {
       }
 
       textDiv.textContent = displayNum + suffix;
-      li.appendChild(textDiv); // li 안에 div를 넣음
+      li.appendChild(textDiv);
 
+      // ⭐ 오직 선택된 항목에만 포커스(0) 부여. 나머지는 포커스 제외(-1)
       if (i === current) {
         li.classList.add("selected");
         li.setAttribute("aria-selected", "true");
+        li.setAttribute("tabindex", "0");
         targetItem = li;
       } else {
         li.setAttribute("aria-selected", "false");
+        li.setAttribute("tabindex", "-1");
       }
 
+      // 클릭(더블 탭) 시 완벽한 중앙으로 이동
       li.addEventListener("click", () => scrollToPerfectCenter(colDiv, li, true));
-      li.addEventListener("focus", () => scrollToPerfectCenter(colDiv, li, true));
+
+      // 🚨 주의: 강제 스크롤을 유발하던 focus 이벤트는 완전히 제거했습니다.
 
       fragment.appendChild(li);
     }
@@ -272,17 +312,25 @@ function initDatePicker() {
     });
   }
 
-  // ⭐ 자식 요소인 `.wheel-text`에만 3D 애니메이션을 적용하도록 변경
   function applyItemStyle(item, center, itemCenter, dist) {
+    // ⭐ 스크롤하면서 중앙에 오는 요소에 자동으로 포커스(tabindex="0")를 넘겨줍니다.
     if (dist < 20) {
       if (!item.classList.contains("selected")) {
         item.classList.add("selected");
         item.setAttribute("aria-selected", "true");
+        item.setAttribute("tabindex", "0");
+
+        // 톡백 사용자가 현재 기둥을 탐색 중이라면, 새로 중앙에 온 값으로 초점을 자연스럽게 넘겨 읽어주도록 함
+        const activeEl = document.activeElement;
+        if (activeEl && item.parentNode.contains(activeEl) && activeEl !== item) {
+          item.focus({ preventScroll: true });
+        }
       }
     } else {
       if (item.classList.contains("selected")) {
         item.classList.remove("selected");
         item.setAttribute("aria-selected", "false");
+        item.setAttribute("tabindex", "-1");
       }
     }
 
@@ -335,7 +383,7 @@ function initDatePicker() {
 
   function parseInitialValues(inputValue) {
     const nums = inputValue.match(/\d+/g) || [];
-    const isPMText = inputValue.includes("오후") || inputValue.toLowerCase().includes("pm");
+    const isPMText = inputValue.includes(CONFIG.locale.pm) || inputValue.toLowerCase().includes("pm");
     const now = new Date();
     const values = {};
     let numIndex = 0;
@@ -423,6 +471,10 @@ function initDatePicker() {
     const isPM = h24 >= 12;
     const h12 = h24 % 12 || 12;
 
+    const dayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const currentDayKey = dayKeys[dateObj.getDay()];
+    const shortDayName = CONFIG.locale[currentDayKey];
+
     const map = {
       YYYY: y,
       YY: String(y).slice(-2),
@@ -430,15 +482,15 @@ function initDatePicker() {
       M: m,
       DD: String(d).padStart(2, "0"),
       D: d,
-      dddd: CONFIG.locale[dateObj.getDay()] + "요일",
-      ddd: CONFIG.locale[dateObj.getDay()],
+      dddd: shortDayName + CONFIG.locale.daySuffix,
+      ddd: shortDayName,
       HH: String(h24).padStart(2, "0"),
       H: h24,
       hh: String(h12).padStart(2, "0"),
       h: h12,
       mm: String(min).padStart(2, "0"),
       m: min,
-      A: isPM ? "오후" : "오전",
+      A: isPM ? CONFIG.locale.pm : CONFIG.locale.am,
       a: isPM ? "pm" : "am",
     };
 
