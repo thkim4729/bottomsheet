@@ -19,79 +19,71 @@ function ui() {
       displayDots: typeof params.displayDots !== "undefined" ? params.displayDots : true,
       dotsPosition: params.dotsPosition || "left",
     };
-    const sceneInfo = [
-      {
-        type: "normal",
-      },
-      {
-        type: "sticky",
-        scrollHeight: 20,
-        objs: {
-          container: document.querySelector(".scroll-section-1"),
-          bWrapper: document.querySelector(".scroll-section-1 .benefit_wrapper"),
-          bItemAll: document.querySelectorAll(".scroll-section-1 .benefit_item"),
-          benefitA: document.querySelector(".scroll-section-1 .benefit_item.a"),
-          benefitB: document.querySelector(".scroll-section-1 .benefit_item.b"),
-          benefitC: document.querySelector(".scroll-section-1 .benefit_item.c"),
-          benefitD: document.querySelector(".scroll-section-1 .benefit_item.d"),
-          benefitE: document.querySelector(".scroll-section-1 .benefit_item.e"),
-          benefitF: document.querySelector(".scroll-section-1 .benefit_item.f"),
-        },
-      },
-      {
-        type: "sticky",
-        scrollHeight: 20,
-        objs: {
-          container: document.querySelector(".scroll-section-2"),
-          bItemAll: document.querySelectorAll(".scroll-section-2 .main_message"),
-          messageA: document.querySelector(".scroll-section-2 .main_message.a"),
-          messageB: document.querySelector(".scroll-section-2 .main_message.b"),
-          messageC: document.querySelector(".scroll-section-2 .main_message.c"),
-        },
-      },
-      {
-        type: "sticky",
-        scrollHeight: 7,
-        objs: {
-          container: document.querySelector(".scroll-section-3"),
-          bItemAll: document.querySelectorAll(".scroll-section-3 .main_benefit"),
-          benefitA: document.querySelector(".scroll-section-3 .main_benefit.a"),
-          benefitB: document.querySelector(".scroll-section-3 .main_benefit.b"),
-        },
-      },
-      {
-        type: "normal",
-      },
-      {
-        objs: {
-          video: document.querySelector(".scroll-section-5 .slot_machine > video"),
-        },
-      },
-      {
-        type: "sticky",
-        scrollHeight: 10,
-        objs: {
-          container: document.querySelector(".scroll-section-6"),
-          bItemAll: document.querySelectorAll(".scroll-section-6 .img_phone"),
-          phoneGroup: document.querySelector(".scroll-section-6 .phone_group"),
-          phoneA: document.querySelector(".scroll-section-6 .img_phone.a"),
-          phoneB: document.querySelector(".scroll-section-6 .img_phone.b"),
-          phoneC: document.querySelector(".scroll-section-6 .img_phone.c"),
-        },
-      },
-      {
-        type: "normal",
-      },
-      {
-        type: "sticky",
-        scrollHeight: 20,
-        objs: {
-          container: document.querySelector(".scroll-section-8"),
-          bItemAll: document.querySelectorAll(".scroll-section-8 .img_menu"),
-          menuList: document.querySelector(".scroll-section-8 .img_menu_list"),
-        },
-      },
-    ];
+    const sceneInfo = [];
+    sections.forEach((section) => {
+      const match = section.className.match(/scroll-section-(\d+)/);
+      const id = match ? parseInt(match[1]) : 0;
+      let info = { id: id, type: "normal", objs: {} };
+
+      if (id === 1) {
+        info.type = "sticky";
+        info.scrollHeight = 20;
+        info.objs = {
+          container: section,
+          bWrapper: section.querySelector(".benefit_wrapper"),
+          bItemAll: section.querySelectorAll(".benefit_item"),
+          benefitA: section.querySelector(".benefit_item.a"),
+          benefitB: section.querySelector(".benefit_item.b"),
+          benefitC: section.querySelector(".benefit_item.c"),
+          benefitD: section.querySelector(".benefit_item.d"),
+          benefitE: section.querySelector(".benefit_item.e"),
+          benefitF: section.querySelector(".benefit_item.f"),
+        };
+      } else if (id === 2) {
+        info.type = "sticky";
+        info.scrollHeight = 20;
+        info.objs = {
+          container: section,
+          bItemAll: section.querySelectorAll(".main_message"),
+          messageA: section.querySelector(".main_message.a"),
+          messageB: section.querySelector(".main_message.b"),
+          messageC: section.querySelector(".main_message.c"),
+        };
+      } else if (id === 3) {
+        info.type = "sticky";
+        info.scrollHeight = 7;
+        info.objs = {
+          container: section,
+          bItemAll: section.querySelectorAll(".main_benefit"),
+          benefitA: section.querySelector(".main_benefit.a"),
+          benefitB: section.querySelector(".main_benefit.b"),
+        };
+      } else if (id === 5) {
+        info.objs = {
+          video: section.querySelector(".slot_machine > video"),
+        };
+      } else if (id === 6) {
+        info.type = "sticky";
+        info.scrollHeight = 10;
+        info.objs = {
+          container: section,
+          bItemAll: section.querySelectorAll(".img_phone"),
+          phoneGroup: section.querySelector(".phone_group"),
+          phoneA: section.querySelector(".img_phone.a"),
+          phoneB: section.querySelector(".img_phone.b"),
+          phoneC: section.querySelector(".img_phone.c"),
+        };
+      } else if (id === 8) {
+        info.type = "sticky";
+        info.scrollHeight = 20;
+        info.objs = {
+          container: section,
+          bItemAll: section.querySelectorAll(".img_menu"),
+          menuList: section.querySelector(".img_menu_list"),
+        };
+      }
+      sceneInfo.push(info);
+    });
 
     this.defaults = defaults;
     this.sceneInfo = sceneInfo;
@@ -158,12 +150,13 @@ function ui() {
     this.mouseWheelAndKey = function (event) {
       event.deltaY > 0 ? scrollCount++ : scrollCount--;
 
+      const currentSceneId = _self.sceneInfo[_self.defaults.currentPosition]?.id;
       if (
-        _self.defaults.currentPosition == 1 ||
-        _self.defaults.currentPosition == 2 ||
-        _self.defaults.currentPosition == 3 ||
-        _self.defaults.currentPosition == 6 ||
-        _self.defaults.currentPosition == 8
+        currentSceneId == 1 ||
+        currentSceneId == 2 ||
+        currentSceneId == 3 ||
+        currentSceneId == 6 ||
+        currentSceneId == 8
       ) {
         const rev = _self.scrollLoop(event, scrollCount);
         console.log(rev);
@@ -209,18 +202,19 @@ function ui() {
     this.touchEnd = function (event) {
       mTouchEnd = parseInt(event.changedTouches[0].clientY);
 
+      const currentSceneId = _self.sceneInfo[_self.defaults.currentPosition]?.id;
       if (
-        _self.defaults.currentPosition == 1 ||
-        _self.defaults.currentPosition == 2 ||
-        _self.defaults.currentPosition == 3 ||
-        _self.defaults.currentPosition == 6 ||
-        _self.defaults.currentPosition == 8
+        currentSceneId == 1 ||
+        currentSceneId == 2 ||
+        currentSceneId == 3 ||
+        currentSceneId == 6 ||
+        currentSceneId == 8
       ) {
         mTouchStart > mTouchEnd ? scrollCount++ : scrollCount--;
 
         let len = _self.sceneInfo[_self.defaults.currentPosition].objs.bItemAll.length;
 
-        if (_self.defaults.currentPosition == 6) {
+        if (currentSceneId == 6) {
           len = _self.sceneInfo[_self.defaults.currentPosition].objs.bItemAll.length - 1;
         }
 
@@ -259,12 +253,13 @@ function ui() {
 
     this.scrollMobile = function (scrollCount) {
       const currentScene = _self.defaults.currentPosition;
+      const currentSceneId = _self.sceneInfo[currentScene]?.id;
       const objs = _self.sceneInfo[currentScene].objs;
 
       console.log("scrollCount", scrollCount);
-      console.log("currentScene", currentScene);
+      console.log("currentSceneId", currentSceneId);
 
-      if (currentScene == 1) {
+      if (currentSceneId == 1) {
         const count = scrollCount - 1;
         const benefitAll = objs.bItemAll;
         const halfWidth = benefitAll[count].clientWidth / 2;
@@ -274,7 +269,7 @@ function ui() {
         objs.bWrapper.style.transform = `translate3d(-${halfWidth + (benefitAll[count].clientWidth + 20) * count}px, 0, 0)`;
       }
 
-      if (currentScene == 2) {
+      if (currentSceneId == 2) {
         const count = scrollCount - 1;
         const messageAll = objs.bItemAll;
 
@@ -282,23 +277,23 @@ function ui() {
         messageAll[count].classList.add("active");
       }
 
-      if (currentScene == 3) {
+      if (currentSceneId == 3) {
         const count = scrollCount - 1;
         const benefitAll = objs.bItemAll;
 
         _self.changeActiveClass(benefitAll, benefitAll[count]);
       }
 
-      if (currentScene == 6) {
+      if (currentSceneId == 6) {
         const mainBenefit = objs.container.querySelectorAll(".main_benefit");
 
         _self.changeActiveClass(mainBenefit, objs.phoneB, function () {
-          objs.phoneB.classList.add(_self.defaults.activeClass);
-          objs.phoneGroup.classList.add(_self.defaults.activeClass);
+          if (objs.phoneB) objs.phoneB.classList.add(_self.defaults.activeClass);
+          if (objs.phoneGroup) objs.phoneGroup.classList.add(_self.defaults.activeClass);
         });
       }
 
-      if (currentScene == 8) {
+      if (currentSceneId == 8) {
         const count = scrollCount - 1;
         const menuWidth = objs.menuList.querySelector(".img_menu").offsetWidth + 4;
 
@@ -308,13 +303,14 @@ function ui() {
 
     this.scrollAnimation = function (scrollCount) {
       const currentScene = _self.defaults.currentPosition;
+      const currentSceneId = _self.sceneInfo[currentScene]?.id;
       const objs = _self.sceneInfo[currentScene].objs;
       const scrollRatio = scrollCount / _self.sceneInfo[currentScene].scrollHeight;
 
       console.log("scrollRatio", scrollRatio);
       console.log("scrollCount", scrollCount);
 
-      if (currentScene == 1) {
+      if (currentSceneId == 1) {
         const benefitItems = objs.container.querySelectorAll(".benefit_item");
 
         if (scrollRatio < 0.16) {
@@ -330,7 +326,7 @@ function ui() {
         } else if (scrollRatio >= 0.8) {
           _self.changeActiveClass(benefitItems, objs.benefitF);
         }
-      } else if (currentScene == 2) {
+      } else if (currentSceneId == 2) {
         const mainMessage = objs.container.querySelectorAll(".main_message");
 
         if (scrollRatio < 0.22) {
@@ -340,28 +336,28 @@ function ui() {
         } else if (scrollRatio >= 0.55) {
           _self.changeActiveClass(mainMessage, objs.messageC);
         }
-      } else if (currentScene == 3) {
+      } else if (currentSceneId == 3) {
         const mainBenefit = objs.container.querySelectorAll(".main_benefit");
 
         if (scrollRatio >= 0.1 && scrollRatio < 0.2) {
           _self.changeActiveClass(mainBenefit, objs.benefitA, function () {
-            objs.benefitA.classList.remove(_self.defaults.activeClass);
+            if (objs.benefitA) objs.benefitA.classList.remove(_self.defaults.activeClass);
           });
         } else if (scrollRatio >= 0.2) {
           setTimeout(() => {
             _self.changeActiveClass(mainBenefit, objs.benefitB);
           }, 500);
         }
-      } else if (currentScene == 6) {
+      } else if (currentSceneId == 6) {
         const mainBenefit = objs.container.querySelectorAll(".main_benefit");
 
         if (scrollRatio >= 0.1) {
           _self.changeActiveClass(mainBenefit, objs.phoneB, function () {
-            objs.phoneB.classList.add(_self.defaults.activeClass);
-            objs.phoneGroup.classList.add(_self.defaults.activeClass);
+            if (objs.phoneB) objs.phoneB.classList.add(_self.defaults.activeClass);
+            if (objs.phoneGroup) objs.phoneGroup.classList.add(_self.defaults.activeClass);
           });
         }
-      } else if (currentScene == 8) {
+      } else if (currentSceneId == 8) {
         const menuWidth = objs.menuList.querySelector(".img_menu").offsetWidth;
         let num;
 
@@ -398,56 +394,65 @@ function ui() {
             _self.addActiveClass(_self.defaults.maxPosition);
           } else {
             console.log("scene " + anchor);
-            if (anchor == 1) {
+            const sceneId = _self.sceneInfo[anchor]?.id;
+
+            if (sceneId == 1) {
               setTimeout(() => {
                 _self.sceneInfo[anchor].objs.benefitA.classList.add("active");
               }, 2500);
             }
 
-            if (anchor == 2) {
+            if (sceneId == 2) {
               setTimeout(() => {
                 _self.sceneInfo[anchor].objs.messageA.classList.add("active");
               }, 1000);
             }
 
-            if (anchor == 3) {
+            if (sceneId == 3) {
               setTimeout(() => {
                 _self.sceneInfo[anchor].objs.benefitA.classList.add("active");
               }, 1000);
             }
 
-            if (anchor == 5) {
+            if (sceneId == 5) {
               setTimeout(() => {
-                _self.sceneInfo[anchor].objs.video.play();
+                if (_self.sceneInfo[anchor].objs.video) _self.sceneInfo[anchor].objs.video.play();
               }, 1000);
             }
 
-            if (anchor == 6) {
+            if (sceneId == 6) {
               setTimeout(() => {
-                _self.sceneInfo[anchor].objs.phoneA.classList.add("active");
+                if (_self.sceneInfo[anchor].objs.phoneA) _self.sceneInfo[anchor].objs.phoneA.classList.add("active");
+                if (_self.sceneInfo[anchor].objs.phoneC) _self.sceneInfo[anchor].objs.phoneC.classList.add("active");
               }, 100);
             }
 
-            if (anchor == 8) {
-              _self.sceneInfo[anchor].objs.menuList.style.transform = `translate3d(0, 0, 0)`;
+            if (sceneId == 8) {
+              if (_self.sceneInfo[anchor].objs.menuList)
+                _self.sceneInfo[anchor].objs.menuList.style.transform = `translate3d(0, 0, 0)`;
             }
 
-            if (anchor == 12) {
+            if (sceneId == 12) {
               const accordion = document.querySelector(".scroll-section-12 .C_accordion");
-              const inputLabel = accordion.querySelector("label");
-              const inputChk = accordion.querySelector("input[type=checkbox]");
-              inputLabel.addEventListener("click", () => {
-                const isChecked = !inputChk.checked;
-                if (isChecked) {
-                  accordion.classList.add("active");
-                } else {
-                  accordion.classList.remove("active");
-                }
-              });
+              if (accordion) {
+                const inputLabel = accordion.querySelector("label");
+                const inputChk = accordion.querySelector("input[type=checkbox]");
+                inputLabel.addEventListener("click", () => {
+                  const isChecked = !inputChk.checked;
+                  if (isChecked) {
+                    accordion.classList.add("active");
+                  } else {
+                    accordion.classList.remove("active");
+                  }
+                });
+              }
             }
 
-            _self.sceneInfo[2].objs.messageC.classList.remove("active");
-            _self.sceneInfo[3].objs.benefitB.classList.remove("active");
+            const scene2 = _self.sceneInfo.find((s) => s.id == 2);
+            if (scene2 && scene2.objs && scene2.objs.messageC) scene2.objs.messageC.classList.remove("active");
+
+            const scene3 = _self.sceneInfo.find((s) => s.id == 3);
+            if (scene3 && scene3.objs && scene3.objs.benefitB) scene3.objs.benefitB.classList.remove("active");
 
             _self.defaults.currentPosition = anchor;
             _self.addActiveClass(_self.defaults.currentPosition);
@@ -455,7 +460,8 @@ function ui() {
           }
 
           //anchor>0 && anchor < _self.defaults.maxPosition ? _self.defaults.header.classList.replace('type01', 'type02') : _self.defaults.header.classList.replace('type02', 'type01');
-          if (anchor == 2 || anchor == 4 || anchor == 11) {
+          const finalSceneId = _self.sceneInfo[anchor] ? _self.sceneInfo[anchor].id : -1;
+          if (finalSceneId == 2 || finalSceneId == 4 || finalSceneId == 11) {
             _self.defaults.header.classList.replace("type02", "type01");
           } else {
             _self.defaults.header.classList.replace("type01", "type02");
@@ -518,7 +524,7 @@ function ui() {
         callback();
       } else {
         elements.forEach((el) => el.classList.remove(_self.defaults.activeClass));
-        elem.classList.add(_self.defaults.activeClass);
+        if (elem) elem.classList.add(_self.defaults.activeClass);
       }
     };
 
