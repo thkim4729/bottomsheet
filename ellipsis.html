@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>말줄임표 옆 더보기 버튼</title>
+    <link rel="stylesheet" href="ellipsis.css" />
+  </head>
+  <body>
+    <div class="card">
+      <div class="content-box" id="contentBox">
+        <span class="nickname">@nickname</span>
+        <span class="text">
+          이 방식은 텍스트가 버튼을 감싸며 흐르도록 설계되었습니다. 내용이 길어지면 텍스트는 3줄까지 채워지고, 마지막 줄
+          우측 끝에 자연스럽게 말줄임표와 함께 더보기 버튼이 위치하게 됩니다. CSS의 float 트릭을 활용한 고난도
+          레이아웃입니다. 텍스트가 아주 길어도, 혹은 적당히 길어도 버튼은 항상 텍스트의 흐름 끝에 딱 붙어서 나타납니다.
+        </span>
+        <button type="button" class="btn-more" id="moreBtn">... 더보기</button>
+      </div>
+    </div>
+
+    <script>
+      // 글이 짧을 때 버튼을 숨기는 최소한의 JS
+      window.addEventListener("load", () => {
+        const box = document.getElementById("contentBox");
+        const btn = document.getElementById("moreBtn");
+
+        // 실제 컨텐츠 높이가 제한 높이(3줄)보다 작으면 버튼 삭제
+        if (box.scrollHeight <= box.clientHeight) {
+          btn.style.display = "none";
+        }
+
+        btn.addEventListener("click", () => {
+          box.style.maxHeight = "none";
+          btn.style.display = "none";
+        });
+      });
+    </script>
+  </body>
+</html>

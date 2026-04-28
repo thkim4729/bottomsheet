@@ -1,0 +1,64 @@
+/* 기본 스타일 */
+body {
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  padding-top: 100px;
+  margin: 0;
+  font-family: sans-serif;
+}
+
+.card {
+  width: 330px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 텍스트 컨테이너 */
+.content-box {
+  display: block;
+  max-height: 4.5em; /* line-height(1.5) * 3줄 = 4.5em */
+  line-height: 1.5;
+  overflow: hidden;
+  font-size: 14px;
+  color: #1c1e21;
+  text-align: justify; /* 양쪽 정렬을 해야 버튼 자리가 깔끔하게 생김 */
+}
+
+/* 닉네임 */
+.nickname {
+  font-weight: bold;
+  color: #000;
+  margin-right: 4px;
+}
+
+/* [핵심] 버튼을 아래로 밀어주는 장치 */
+.content-box::before {
+  content: "";
+  float: right;
+  width: 0;
+  height: calc(4.5em - 1.5em); /* 전체높이(3줄) - 버튼높이(1줄) */
+}
+
+/* [핵심] 더보기 버튼 */
+.btn-more {
+  float: right;
+  clear: both; /* before 아래로 떨어지게 함 */
+
+  border: none;
+  background: white; /* 텍스트 위에 겹치므로 배경색 필수 */
+  color: #65676b;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 0 0 4px; /* 왼쪽 여백 */
+
+  /* 텍스트와 자연스럽게 이어지도록 위치 미세 조정 */
+  position: relative;
+  line-height: 1.5;
+}
+
+.btn-more:hover {
+  text-decoration: underline;
+}
