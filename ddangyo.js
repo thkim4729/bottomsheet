@@ -338,13 +338,17 @@ function ui() {
         }
       } else if (currentSceneId == 3) {
         const mainBenefit = objs.container.querySelectorAll(".main_benefit");
+        if (_self.scene3Timer2) clearTimeout(_self.scene3Timer2);
 
-        if (scrollRatio >= 0.1 && scrollRatio < 0.2) {
+        if (scrollRatio < 0.1) {
+          _self.changeActiveClass(mainBenefit, objs.benefitA);
+        } else if (scrollRatio >= 0.1 && scrollRatio < 0.2) {
           _self.changeActiveClass(mainBenefit, objs.benefitA, function () {
             if (objs.benefitA) objs.benefitA.classList.remove(_self.defaults.activeClass);
+            if (objs.benefitB) objs.benefitB.classList.remove(_self.defaults.activeClass);
           });
         } else if (scrollRatio >= 0.2) {
-          setTimeout(() => {
+          _self.scene3Timer2 = setTimeout(() => {
             _self.changeActiveClass(mainBenefit, objs.benefitB);
           }, 500);
         }
@@ -409,8 +413,13 @@ function ui() {
             }
 
             if (sceneId == 3) {
-              setTimeout(() => {
-                _self.sceneInfo[anchor].objs.benefitA.classList.add("active");
+              if (_self.scene3Timer) clearTimeout(_self.scene3Timer);
+              _self.scene3Timer = setTimeout(() => {
+                const benefitB = _self.sceneInfo[anchor].objs.benefitB;
+                if (!benefitB || !benefitB.classList.contains("active")) {
+                  if (_self.sceneInfo[anchor].objs.benefitA)
+                    _self.sceneInfo[anchor].objs.benefitA.classList.add("active");
+                }
               }, 1000);
             }
 
